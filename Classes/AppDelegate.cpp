@@ -110,7 +110,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // create a scene. it's an autorelease object
     auto logo_scene = Welcome::createScene();
-    auto menu_scene = MenuScene::createScene();
+    auto menu_scene = MenuScene::createScene();//cmc大傻逼
     director->runWithScene(Scene::create());
     director->replaceScene(TransitionFade::create(2.0f, logo_scene));
     return true;
