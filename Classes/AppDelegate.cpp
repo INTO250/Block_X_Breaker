@@ -26,19 +26,19 @@
 #include "WelcomeScene.h"
 #include "MenuScene.h"
 
-// #define USE_AUDIO_ENGINE 1
+#define USE_AUDIO_ENGINE 1
 
 #if USE_AUDIO_ENGINE
 #include "audio/include/AudioEngine.h"
-using namespace cocos2d::experimental;
+//using namespace cocos2d::experimental;
 #endif
 
 USING_NS_CC;
 
 static cocos2d::Size designResolutionSize = cocos2d::Size(1080, 1440);
-static cocos2d::Size smallResolutionSize = cocos2d::Size(480, 320);
-static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
-static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
+static cocos2d::Size smallResolutionSize = cocos2d::Size(1080, 1440);
+static cocos2d::Size mediumResolutionSize = cocos2d::Size(1080, 1440);
+static cocos2d::Size largeResolutionSize = cocos2d::Size(1080, 1440);
 
 AppDelegate::AppDelegate()
 {
@@ -88,7 +88,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     director->setAnimationInterval(1.0f / 60);
 
     // Set the design resolution
-    glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
+    glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::FIXED_WIDTH);
     auto frameSize = glview->getFrameSize();
     // if the frame's height is larger than the height of medium size.
     if (frameSize.height > mediumResolutionSize.height)
@@ -111,8 +111,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // create a scene. it's an autorelease object
     auto logo_scene = Welcome::createScene();
     auto menu_scene = MenuScene::createScene();
-    director->runWithScene(Scene::create());
-    director->replaceScene(TransitionFade::create(2.0f, logo_scene));
+    director->runWithScene(Scene::create()); //runWithScene好像不能用TransitionFade.....?所以这里就先create一个空的场景然后再用logo界面去replace
+    director->replaceScene(TransitionFade::create(2.0f, logo_scene)); //渐变
     return true;
 }
 

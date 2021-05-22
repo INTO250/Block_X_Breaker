@@ -1,5 +1,6 @@
 #include "WelcomeScene.h"
 #include "MenuScene.h"
+#include "AudioEngine.h"
 USING_NS_CC;
 
 Scene*  Welcome::createScene()
@@ -18,7 +19,7 @@ bool Welcome::init()
     }
     auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
-    auto logo = Sprite::create("logo_1.png");
+    auto logo = Sprite::create("logo.jpg");
     if (logo == nullptr)
     {
         problemLoading("logo_1.png");
@@ -28,11 +29,11 @@ bool Welcome::init()
         logo->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y)); //屏幕中央
         this->addChild(logo, 0);
     }
-    this->scheduleOnce(CC_SCHEDULE_SELECTOR(Welcome::myUpdate), 4.0f); //计时
+    this->scheduleOnce(CC_SCHEDULE_SELECTOR(Welcome::myUpdate), 4.0f); //计时，只执行一次myUpdate()
     return true;
 }
 void Welcome::myUpdate(float dt)
 {
+    auto mainMenuBGM = AudioEngine::play2d("MainMenu.mp3", true); 
     Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MenuScene::createScene()));
-    //Director::getInstance()->end();
 }
