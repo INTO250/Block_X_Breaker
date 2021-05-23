@@ -150,14 +150,15 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
             Blocks[bodyA->getTag() - 1]->exsistence = false;
         }
     }
-    bool gameSuccess = 0;
+    bool gameSuccess = 1;
     for (auto it = Blocks.begin(); it != Blocks.end(); it++)
     {
         if ((*it)->exsistence)
         {
+            gameSuccess = 0;
             break;
         }
-        gameSuccess = 1;
+        
     }
     if (gameSuccess)
     {
