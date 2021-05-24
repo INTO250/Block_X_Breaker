@@ -39,8 +39,7 @@ bool GameScene::initWithPhysics(int stage)
     board = Board::createBoard("board.jpg");
     board->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5));
     this->addChild(board);
-
-    auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 0.0f));
+    auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 2.0f));
     boardBody->setCategoryBitmask(0xFFFFFFFF);
     boardBody->setCollisionBitmask(0xFFFFFFFF);
     boardBody->setContactTestBitmask(0xFFFFFFFF);
@@ -49,14 +48,28 @@ bool GameScene::initWithPhysics(int stage)
     boardBody->setDynamic(false);
     boardBody->setTag(0);
     board->setPhysicsBody(boardBody);
-    
-    Balls.pushBack(Ball::createBall("ball.png"));
+
+    //箭头指引发射方向
+    arrow = Arrow::createArrow("arrow.png");
+    arrow->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5+100));
+    this->addChild(arrow);
+    auto arrowBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(0.f, 1.0f, 2.0f));
+    arrowBody->setCategoryBitmask(0x7);
+    arrowBody->setCollisionBitmask(0x7);
+    arrowBody->setContactTestBitmask(0x7);
+    arrowBody->setRotationEnable(true);
+    arrowBody->setGravityEnable(false);
+    arrowBody->setDynamic(false);
+    arrowBody->setTag(0);
+    arrow->setPhysicsBody(arrowBody);
+
+    Balls.push_back(Ball::createBall("ball.png"));
     Balls.back()->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5 + Balls.back()->getContentSize().height / 2 + board->getContentSize().height / 2));
     Balls.back()->existence = true;
     Balls.back()->type = 0;
     this->addChild(Balls.back());
 
-    auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 0.0f));
+    auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
     ballBody->setCategoryBitmask(0xFFFFFFFF);
     ballBody->setCollisionBitmask(0xFFFFFFFF);
     ballBody->setContactTestBitmask(0xFFFFFFFF);
@@ -104,8 +117,39 @@ void GameScene::blocks_create(int stage)
                 blockBody->setTag(i);
                 rua->setPhysicsBody(blockBody);
                 Blocks.push_back(rua);
-            } 
+            }
+
+            /*旋转效果
+            ActionInterval* actionTo = RotateTo::create(100, 180);
+            board->runAction(Sequence::create(actionTo, NULL));
+            
+            */
+            
+            /*小球加倍
+            for (int i = 0; i <= 1; i++)
+            {
+                Balls.push_back(Ball::createBall("ball.png"));
+                Balls.back()->setPosition(Vec2(Balls[i]->getPositionX(), Balls[i]->getPositionY()));
+                Balls.back()->existence = true;
+                Balls.back()->type = 0;
+                this->addChild(Balls.back());
+
+                auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
+                ballBody->setCategoryBitmask(0xFFFFFFFF);
+                ballBody->setCollisionBitmask(0xFFFFFFFF);
+                ballBody->setContactTestBitmask(0xFFFFFFFF);
+                ballBody->setRotationEnable(false);
+                ballBody->setGravityEnable(true);
+                ballBody->setTag(0);
+                Balls.back()->setPhysicsBody(ballBody);
+            }
+            */
+
+            /*缩放
+            ActionInterval * scaleto = ScaleTo ::create(2, 0.5);
+            board->runAction(scaleto);
             break;
+            */
     }
     for (auto it = Blocks.begin(); it != Blocks.end(); it++)
         this->addChild(*it, 3); 
@@ -150,63 +194,97 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
             Blocks[bodyA->getTag() - 1]->exsistence = false;
         }
     }
-    bool gameSuccess = 1;
-    for (auto it = Blocks.begin(); it != Blocks.end(); it++)
-    {
-        if ((*it)->exsistence)
-        {
-            gameSuccess = 0;
-            break;
-        }
-        
-    }
-    if (gameSuccess)
-    {
-        Director::getInstance()->popScene();
-    }
     return true;  //返回true，才干够继续监听其他碰撞
 }
 
 void GameScene::update(float dt)
 {
-    if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
+    if (gameStart)
     {
-        if (board->getPosition().x > 50)
+        bool signal_of_end = false;
+        auto it = Blocks.begin();
+        if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
         {
-            board->setPositionX(board->getPosition().x - 10);
-        }
-    }
-    if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW])
-    {
-        if (board->getPosition().x < 950)
-        {
-            board->setPositionX(board->getPosition().x + 10);
-        }
-    }
-    if (Balls.back()->getPositionY() < board->getPositionY() - 50)
-    {
-        Director::getInstance()->popScene();
-    }
-   
-   
-}
-void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event)
-{
-    keys[code] = true;
-    switch (code)
-    {
-        case EventKeyboard::KeyCode::KEY_LEFT_ARROW:
             if (board->getPosition().x > 50)
             {
                 board->setPositionX(board->getPosition().x - 10);
             }
-            break;
-        case EventKeyboard::KeyCode::KEY_RIGHT_ARROW:
+        }
+        if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW])
+        {
             if (board->getPosition().x < 950)
             {
                 board->setPositionX(board->getPosition().x + 10);
             }
-            break;
+        }
+
+
+        for (it = Blocks.begin(); it != Blocks.end(); it++)
+        {
+            if ((*it)->exsistence)
+            {
+                break;
+            }
+
+        }
+        if (it == Blocks.end())//胜利的标志
+        {
+            signal_of_end = true;
+            auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
+            label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+            this->addChild(label_success);
+
+            auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
+            auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
+            auto backbuttom = Menu::create(item_back, NULL);
+            backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
+            this->addChild(backbuttom);
+            Balls.back()->existence = false;
+            //Director::getInstance()->popScene();
+        }
+        for (auto i = Balls.begin(); i < Balls.end(); i++)
+            if ((*i)->getPositionY() < board->getPositionY() - 50)
+            {
+                if (it != Blocks.end())
+                {
+                    auto label_false = Label::createWithTTF("You Loser!", "fonts/Marker Felt.ttf", 148);
+                    label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+                    this->addChild(label_false);
+
+                    auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
+                    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
+                    auto backbuttom = Menu::create(item_back, NULL);
+                    backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
+                    this->addChild(backbuttom);
+                    Balls.back()->existence = false;
+                    //Director::getInstance()->popScene();
+                }
+            }
+    }
+    else if (!gameStart)
+    {
+        if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
+        {
+            ActionInterval* actionBy = RotateBy::create(0.01, -5);
+            arrow->runAction(Sequence::create(actionBy, NULL));
+        }
+        if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW])
+        {
+            ActionInterval* actionBy = RotateBy::create(0.01, 5);
+            arrow->runAction(Sequence::create(actionBy, NULL));
+        }
+    }
+}
+void GameScene::BackToStage(cocos2d::Ref* pSender)
+{
+    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, StageSelect::create()));
+}
+
+void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event)
+{
+    keys[code] = true;
+    switch (code)
+    {   
         case EventKeyboard::KeyCode::KEY_SPACE:
             if (!gameStart)
             {
@@ -222,3 +300,4 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
 {
     keys[code] = false;
 }
+
