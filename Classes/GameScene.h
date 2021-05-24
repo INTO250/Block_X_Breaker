@@ -4,7 +4,9 @@
 #include "cocos2d.h"
 #include "Ball.h"
 #include "Board.h"
+#include "Arrow.h"
 #include "Block.h"
+
 class GameScene : public cocos2d::Scene
 {
 public:
@@ -12,8 +14,9 @@ public:
     virtual bool initWithPhysics(int stage);
     static cocos2d::PhysicsWorld* world;
     std::vector<Block*> Blocks;
-    cocos2d::Vector<Ball*> Balls;
+    std::vector<Ball*> Balls;
     Board* board;
+    Arrow* arrow;
     void blocks_create(int stage);
     void onEnter();
     void update(float dt);
@@ -25,5 +28,7 @@ public:
     cocos2d::PhysicsJointPin* joint;
     bool gameStart;
     cocos2d::Size visibleSize;
+    void GameScene::BackToStage(cocos2d::Ref* pSender);
+    int power=0;
 };
 #endif
