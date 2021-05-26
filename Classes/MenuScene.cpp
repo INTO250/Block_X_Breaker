@@ -51,7 +51,7 @@ bool MenuScene::init()
     else
     {
         // position the sprite on the center of the screen
-       logo->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 3 * 2 + origin.y));
+       logo->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 4 * 3 + origin.y));
 
         // add the sprite as a child to this layer
         this->addChild(logo, 0);
