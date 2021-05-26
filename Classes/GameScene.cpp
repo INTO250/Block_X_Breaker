@@ -40,9 +40,9 @@ bool GameScene::initWithPhysics(int stage)
     board->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5));
     this->addChild(board);
     auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 2.0f));
-    boardBody->setCategoryBitmask(0xFFFFFFFF);
-    boardBody->setCollisionBitmask(0xFFFFFFFF);
-    boardBody->setContactTestBitmask(0xFFFFFFFF);
+    boardBody->setCategoryBitmask(1);
+    boardBody->setCollisionBitmask(1);
+    boardBody->setContactTestBitmask(1);
     boardBody->setRotationEnable(true);
     boardBody->setGravityEnable(false);
     boardBody->setDynamic(false);
@@ -53,10 +53,10 @@ bool GameScene::initWithPhysics(int stage)
     arrow = Arrow::createArrow("arrow.png");
     arrow->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5+100));
     this->addChild(arrow);
-    auto arrowBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(0.f, 1.0f, 2.0f));
-    arrowBody->setCategoryBitmask(0x7);
-    arrowBody->setCollisionBitmask(0x7);
-    arrowBody->setContactTestBitmask(0x7);
+    auto arrowBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(0.f, 0.0f, 0.0f));
+    arrowBody->setCategoryBitmask(0);
+    arrowBody->setCollisionBitmask(1);
+    arrowBody->setContactTestBitmask(1);
     arrowBody->setRotationEnable(true);
     arrowBody->setGravityEnable(false);
     arrowBody->setDynamic(false);
@@ -70,15 +70,19 @@ bool GameScene::initWithPhysics(int stage)
     this->addChild(Balls.back());
 
     auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
-    ballBody->setCategoryBitmask(0xFFFFFFFF);
-    ballBody->setCollisionBitmask(0xFFFFFFFF);
-    ballBody->setContactTestBitmask(0xFFFFFFFF);
+    ballBody->setCategoryBitmask(1);
+    ballBody->setCollisionBitmask(1);
+    ballBody->setContactTestBitmask(1);
     ballBody->setRotationEnable(false);
     ballBody->setGravityEnable(true);
     ballBody->setTag(0);
     Balls.back()->setPhysicsBody(ballBody);
 
-    
+    auto label_back = Label::createWithTTF("End", "fonts/Marker Felt.ttf", 48);
+    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
+    auto backbuttom = Menu::create(item_back, NULL);
+    backbuttom->setPosition(Vec2(visibleSize.width/2 , visibleSize.height)/10);
+    this->addChild(backbuttom);
     
     joint = PhysicsJointPin::construct(Balls.back()->getPhysicsBody(), board->getPhysicsBody(), Vec2(Balls.back()->getAnchorPoint().x, Balls.back()->getAnchorPoint().y - Balls.back()->getContentSize().height / 2), board->getAnchorPoint());
     getPhysicsWorld()->addJoint(joint);
@@ -111,9 +115,9 @@ void GameScene::blocks_create(int stage)
                 rua->life = 1;
                 auto blockBody = PhysicsBody::createBox(rua->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));
                 blockBody->setDynamic(false);
-                blockBody->setCategoryBitmask(0xFFFFFFFF);
-                blockBody->setCollisionBitmask(0xFFFFFFFF);
-                blockBody->setContactTestBitmask(0xFFFFFFFF);
+                blockBody->setCategoryBitmask(1);
+                blockBody->setCollisionBitmask(1);
+                blockBody->setContactTestBitmask(1);
                 blockBody->setTag(i);
                 rua->setPhysicsBody(blockBody);
                 Blocks.push_back(rua);
@@ -135,9 +139,9 @@ void GameScene::blocks_create(int stage)
                 this->addChild(Balls.back());
 
                 auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
-                ballBody->setCategoryBitmask(0xFFFFFFFF);
-                ballBody->setCollisionBitmask(0xFFFFFFFF);
-                ballBody->setContactTestBitmask(0xFFFFFFFF);
+                ballBody->setCategoryBitmask(1);
+                ballBody->setCollisionBitmask(1);
+                ballBody->setContactTestBitmask(1);
                 ballBody->setRotationEnable(false);
                 ballBody->setGravityEnable(true);
                 ballBody->setTag(0);
@@ -203,6 +207,7 @@ void GameScene::update(float dt)
     {
         bool signal_of_end = false;
         auto it = Blocks.begin();
+
         if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
         {
             if (board->getPosition().x > 50)
@@ -225,8 +230,8 @@ void GameScene::update(float dt)
             {
                 break;
             }
-
-        }
+        }     
+        
         if (it == Blocks.end())//胜利的标志
         {
             signal_of_end = true;
@@ -239,9 +244,10 @@ void GameScene::update(float dt)
             auto backbuttom = Menu::create(item_back, NULL);
             backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
             this->addChild(backbuttom);
-            Balls.back()->existence = false;
-            //Director::getInstance()->popScene();
+            for(auto i=Balls.begin();i<Balls.end();i++)
+            removeChild((*i), true);
         }
+
         for (auto i = Balls.begin(); i < Balls.end(); i++)
             if ((*i)->getPositionY() < board->getPositionY() - 50)
             {
@@ -250,14 +256,12 @@ void GameScene::update(float dt)
                     auto label_false = Label::createWithTTF("You Loser!", "fonts/Marker Felt.ttf", 148);
                     label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
                     this->addChild(label_false);
-
                     auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
                     auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
                     auto backbuttom = Menu::create(item_back, NULL);
                     backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
                     this->addChild(backbuttom);
                     Balls.back()->existence = false;
-                    //Director::getInstance()->popScene();
                 }
             }
     }
@@ -265,15 +269,43 @@ void GameScene::update(float dt)
     {
         if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
         {
-            ActionInterval* actionBy = RotateBy::create(0.01, -5);
+            ActionInterval* actionBy = RotateBy::create(0.01f, -5.f);
             arrow->runAction(Sequence::create(actionBy, NULL));
+            shootvec--;
         }
         if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW])
         {
-            ActionInterval* actionBy = RotateBy::create(0.01, 5);
+            ActionInterval* actionBy = RotateBy::create(0.01f, 5.f);
             arrow->runAction(Sequence::create(actionBy, NULL));
+            shootvec++;
+        }
+        if (keys[EventKeyboard::KeyCode::KEY_SPACE])
+        {
+            power++;
         }
     }
+
+    //显示分数
+    int score = 0;
+    for (auto i = Blocks.begin(); i < Blocks.end(); i++)
+    {
+        if((*i)->exsistence==false)
+          score++;
+    }
+    auto Score = Label::createWithTTF("TextAlas", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
+    Score->setColor(Color3B(159, 168, 176)); //设置颜色
+    Score->setPosition(Vec2(visibleSize.width + 100, visibleSize.height) / 10);
+    removeChild(Score);
+    addChild(Score);
+
+    Score->setString(GameScene::trans(score));   
+   
+}
+string GameScene::trans(long long int value)
+{
+    char buff[16];
+    snprintf(buff, sizeof(buff), "%lld", value);
+    return buff;
 }
 void GameScene::BackToStage(cocos2d::Ref* pSender)
 {
@@ -283,21 +315,23 @@ void GameScene::BackToStage(cocos2d::Ref* pSender)
 void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event)
 {
     keys[code] = true;
+    
+}
+void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
+{
+    keys[code] = false;
     switch (code)
-    {   
+    {
         case EventKeyboard::KeyCode::KEY_SPACE:
             if (!gameStart)
             {
                 Balls.back()->getPhysicsBody()->setRotationEnable(true);
                 gameStart = true;
                 getPhysicsWorld()->removeJoint(joint);
-                Balls.back()->getPhysicsBody()->setVelocity(Vec2(rand() % 1000 - 500, rand() % 1000 + 500));
+                Balls.back()->getPhysicsBody()->setVelocity(Vec2(10.f*power * sin(5 * shootvec * 3.14 / 180), power*10.f * cos(5 * shootvec * 3.14 / 180)));
+                removeChild(arrow, true);
                 break;
             }
     }
-}
-void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
-{
-    keys[code] = false;
 }
 
