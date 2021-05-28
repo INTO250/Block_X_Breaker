@@ -2,7 +2,8 @@
 #include "GameScene.h"
 #include "AudioEngine.h"
 USING_NS_CC;
-
+extern int BGM;
+extern float volumeSound;
 Scene* StageSelect::createScene()
 {
 	return StageSelect::create();
@@ -50,7 +51,7 @@ bool StageSelect::init()
     closeButtonMenu->setAnchorPoint(Vec2(0, 1));
     closeButtonMenu->setPosition(Vec2(50, visibleSize.height - 50));
 
-   
+    AudioEngine::preload("sound_click.mp3");
     
     this->addChild(closeButtonMenu, -1);
    
@@ -58,25 +59,38 @@ bool StageSelect::init()
 }
 void StageSelect::stage_1_select(cocos2d::Ref* pSender)
 {
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+    float volumeBGM = AudioEngine::getVolume(BGM);
+    AudioEngine::stop(BGM);
+    BGM = AudioEngine::play2d("stage_1_BGM.mp3", true, volumeBGM);
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(1)));
 }
 void StageSelect::stage_2_select(cocos2d::Ref* pSender)
 {
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(2)));
 }
 void StageSelect::stage_3_select(cocos2d::Ref* pSender)
 {
+    
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(3)));
 }
 void StageSelect::stage_4_select(cocos2d::Ref* pSender)
 {
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(4)));
 }
 void StageSelect::stage_5_select(cocos2d::Ref* pSender)
 {
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(5)));
 }
 void StageSelect::backToMenu(cocos2d::Ref* pSender)
 {
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+    float volumeBGM = AudioEngine::getVolume(BGM);
+    AudioEngine::stop(BGM);
+    BGM = AudioEngine::play2d("MainMenu.mp3", true, volumeBGM);
     Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MenuScene::createScene()));
 }

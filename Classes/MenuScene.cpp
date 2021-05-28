@@ -2,8 +2,11 @@
 #include "GameScene.h"
 #include "AudioEngine.h"
 #include "StageSelectScene.h"
+#include "SettingsScene.h"
 USING_NS_CC;
 #define BG_HEIGHT 1440
+extern int BGM;
+extern float volumeSound;
 Scene* MenuScene::createScene()
 {
     return MenuScene::create();
@@ -38,7 +41,7 @@ bool MenuScene::init()
     auto item_1 = MenuItemImage::create("story_mode.png", "story_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
     auto item_2 = MenuItemImage::create("arcade_mode.png", "arcade_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
     auto item_3 = MenuItemImage::create("multiplayer_mode.png", "multiplayer_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
-    auto item_4 = MenuItemImage::create("settings.png", "settings_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
+    auto item_4 = MenuItemImage::create("settings.png", "settings_selected.png", CC_CALLBACK_1(MenuScene::settingsCallback, this));
     auto MainMenu = Menu::create(item_1, item_2, item_3, item_4, NULL);
     MainMenu->alignItemsVerticallyWithPadding(20);
     MainMenu->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 3 + origin.y));
@@ -65,13 +68,21 @@ void MenuScene::menuCloseCallback(cocos2d::Ref* pSender)
 }
 void MenuScene::arcadeModeCallback(cocos2d::Ref* pSender)
 {
-    Director::getInstance()->replaceScene(GameScene::create());
+    Director::getInstance()->replaceScene(GameScene::createScene(0));
 }
 void MenuScene::storyModeCallback(cocos2d::Ref* pSender)
 {
-    AudioEngine::stopAll();
-    auto stageSelectBGM = AudioEngine::play2d("stage_select_BGM.mp3");
-    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, StageSelect::create()));
+    
+    auto sound = AudioEngine::play2d("sound_click                                                                                                   .mp3", false, volumeSound);
+    float volumeBGM = AudioEngine::getVolume(BGM);
+    AudioEngine::stop(BGM);
+    BGM = AudioEngine::play2d("stage_select_BGM.mp3", true, volumeBGM);
+    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, StageSelect::createScene()));
+}
+void MenuScene::settingsCallback(cocos2d::Ref* pSender)
+{
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, SettingsScene::createScene()));
 }
 void MenuScene::update(float dt)
 {

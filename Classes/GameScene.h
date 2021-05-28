@@ -30,10 +30,10 @@ public:
     cocos2d::PhysicsJointPin* joint;
     bool gameStart;
     cocos2d::Size visibleSize;
-    void GameScene::BackToStage(cocos2d::Ref* pSender);
+    void BackToStage(cocos2d::Ref* pSender);
     int power=0;
     int shootvec = 0;//初始发射方向
     int remainBlocks = 0;
-    string GameScene::trans(long long int value);
+    string trans(long long int value);
 };
 #endif

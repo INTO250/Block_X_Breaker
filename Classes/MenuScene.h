@@ -13,6 +13,7 @@ public:
     void menuCloseCallback(cocos2d::Ref* pSender);
     void arcadeModeCallback(cocos2d::Ref* pSender);
     void storyModeCallback(cocos2d::Ref* pSender);
+    void settingsCallback(cocos2d::Ref* pSender);
     void update(float dt);
     CREATE_FUNC(MenuScene);
 };
