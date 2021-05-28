@@ -8,7 +8,7 @@
 #include "Board.h"
 #include "Arrow.h"
 #include "Block.h"
-using namespace std;
+
 class GameScene : public cocos2d::Scene
 {
 public:
@@ -16,9 +16,14 @@ public:
     virtual bool initWithPhysics(int stage);
     static cocos2d::PhysicsWorld* world;
     std::vector<Block*> Blocks;
+    Block Blockstore[1000];
+    Block toughBlockstore[1000];
+    Block bonus[1000];
     std::vector<Ball*> Balls;
     Board* board;
     Arrow* arrow;
+    Arrow* powerArrow;
+    Arrow* powerpng;
     void blocks_create(int stage);
     void onEnter();
     void update(float dt);
@@ -26,14 +31,20 @@ public:
    
     void onKeyPressed(cocos2d::EventKeyboard::KeyCode code, cocos2d::Event* event);
     void onKeyReleased(cocos2d::EventKeyboard::KeyCode code, cocos2d::Event* event);
+    void boardrotation();
+    void doubleball();
+    void transform();
     std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
     cocos2d::PhysicsJointPin* joint;
     bool gameStart;
     cocos2d::Size visibleSize;
-    void GameScene::BackToStage(cocos2d::Ref* pSender);
+    void BackToStage(cocos2d::Ref* pSender);
     int power=0;
     int shootvec = 0;//初始发射方向
     int remainBlocks = 0;
-    string GameScene::trans(long long int value);
+    std::string trans(long long int value);
+    int block_order = 0;
+    int toughblock_order = 0;
+    int bonus_order = 0;
 };
 #endif

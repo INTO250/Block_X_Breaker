@@ -34,19 +34,12 @@ bool MenuScene::init()
     background_2->setPosition(Vec2(0, BG_HEIGHT));
     this->addChild(background_1, -5);
     this->addChild(background_2, -5);
-    auto label_1 = Label::createWithTTF("Story Mode", "fonts/Marker Felt.ttf", 48);
-    auto label_2 = Label::createWithTTF("Arcade Mode", "fonts/Marker Felt.ttf", 48);
-    auto label_3 = Label::createWithTTF("Multiplayer Mode", "fonts/Marker Felt.ttf", 48);
-    auto label_4 = Label::createWithTTF("Ranking", "fonts/Marker Felt.ttf", 48);
-    auto label_5 = Label::createWithTTF("Settings", "fonts/Marker Felt.ttf", 48);
-    auto label_6 = Label::createWithTTF("Exit", "fonts/Marker Felt.ttf", 48);  //不支持中文，以后再改
-    auto item_1 = MenuItemLabel::create(label_1, CC_CALLBACK_1(MenuScene::storyModeCallback, this));
-    auto item_2 = MenuItemLabel::create(label_2, CC_CALLBACK_1(MenuScene::arcadeModeCallback, this));
-    auto item_3 = MenuItemLabel::create(label_3, CC_CALLBACK_1(MenuScene::menuCloseCallback, this));
-    auto item_4 = MenuItemLabel::create(label_4, CC_CALLBACK_1(MenuScene::menuCloseCallback, this));
-    auto item_5 = MenuItemLabel::create(label_5, CC_CALLBACK_1(MenuScene::menuCloseCallback, this));
-    auto item_6 = MenuItemLabel::create(label_6, CC_CALLBACK_1(MenuScene::menuCloseCallback, this));
-    auto MainMenu = Menu::create(item_1, item_2, item_3, item_4, item_5, item_6, NULL);
+
+    auto item_1 = MenuItemImage::create("story_mode.png", "story_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
+    auto item_2 = MenuItemImage::create("arcade_mode.png", "arcade_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
+    auto item_3 = MenuItemImage::create("multiplayer_mode.png", "multiplayer_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
+    auto item_4 = MenuItemImage::create("settings.png", "settings_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
+    auto MainMenu = Menu::create(item_1, item_2, item_3, item_4, NULL);
     MainMenu->alignItemsVerticallyWithPadding(20);
     MainMenu->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 3 + origin.y));
     this->addChild(MainMenu, 0);
@@ -58,7 +51,7 @@ bool MenuScene::init()
     else
     {
         // position the sprite on the center of the screen
-       logo->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 3 * 2 + origin.y));
+       logo->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 4 * 3 + origin.y));
 
         // add the sprite as a child to this layer
         this->addChild(logo, 0);

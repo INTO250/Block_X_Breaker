@@ -7,6 +7,7 @@ class Block : public cocos2d::Sprite
 {
 public:
 	static Block* createBlock(const char* filename);
+	Sprite* block_check;
 	bool exsistence; //ÊÇ·ñ´æÔÚ
 	int type; //ĞÎ×´
 	int life; //ÄÍ¾Ã

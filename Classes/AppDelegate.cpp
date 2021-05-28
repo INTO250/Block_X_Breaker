@@ -110,7 +110,6 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // create a scene. it's an autorelease object
     auto logo_scene = Welcome::createScene();
-    auto menu_scene = MenuScene::createScene();
     director->runWithScene(Scene::create()); //runWithScene好像不能用TransitionFade.....?所以这里就先create一个空的场景然后再用logo界面去replace
     director->replaceScene(TransitionFade::create(2.0f, logo_scene)); //渐变
     return true;
