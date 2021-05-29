@@ -23,12 +23,12 @@ bool StageSelect::init()
 
     auto stage_1 = MenuItemImage::create("stage_1.png", "stage_1_selected.png", CC_CALLBACK_1(StageSelect::stage_1_select, this));
     auto stage_1_menu = Menu::create(stage_1, NULL);
-    stage_1_menu->setPosition(visibleSize.width / 2 - 400, visibleSize.height / 2 + 400);
+    stage_1_menu->setPosition(visibleSize.width / 2 - 150, visibleSize.height / 2 + 400);
     this->addChild(stage_1_menu, -1);
 
     auto stage_2 = MenuItemImage::create("stage_2.png", "stage_2_selected.png", CC_CALLBACK_1(StageSelect::stage_2_select, this));
     auto stage_2_menu = Menu::create(stage_2, NULL);
-    stage_2_menu->setPosition(visibleSize.width / 2 - 300, visibleSize.height / 2 - 200);
+    stage_2_menu->setPosition(visibleSize.width / 2 - 200, visibleSize.height / 2 - 300);
     this->addChild(stage_2_menu, -1);
 
     auto stage_3 = MenuItemImage::create("stage_3.png", "stage_3_selected.png", CC_CALLBACK_1(StageSelect::stage_3_select, this));
@@ -38,12 +38,12 @@ bool StageSelect::init()
 
     auto stage_4 = MenuItemImage::create("stage_4.png", "stage_4_selected.png", CC_CALLBACK_1(StageSelect::stage_4_select, this));
     auto stage_4_menu = Menu::create(stage_4, NULL);
-    stage_4_menu->setPosition(visibleSize.width / 2 + 300, visibleSize.height / 2 - 500);
+    stage_4_menu->setPosition(visibleSize.width / 2 + 225, visibleSize.height / 2 - 500);
     this->addChild(stage_4_menu, -1);
 
     auto stage_5 = MenuItemImage::create("stage_5.png", "stage_5_selected.png", CC_CALLBACK_1(StageSelect::stage_5_select, this));
     auto stage_5_menu = Menu::create(stage_5, NULL);
-    stage_5_menu->setPosition(visibleSize.width / 2 + 400, visibleSize.height / 2 + 500);
+    stage_5_menu->setPosition(visibleSize.width / 2 + 200, visibleSize.height / 2 + 500);
     this->addChild(stage_5_menu, -1); 
 
     auto closeButton = MenuItemImage::create("close_button.png", "close_button_selected.png", CC_CALLBACK_1(StageSelect::backToMenu, this));

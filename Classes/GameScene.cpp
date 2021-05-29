@@ -30,83 +30,14 @@ bool GameScene::initWithPhysics(int stage)
 
     auto edge = PhysicsBody::createEdgeBox(visibleSize, PhysicsMaterial(1.0f, 1.0f, 0.0f));
     edge->setTag(0);
+    edge->setCategoryBitmask(1);
+    edge->setCollisionBitmask(1);
+    edge->setContactTestBitmask(0);
     auto edgeNode = Node::create();
     edgeNode->setPosition(visibleSize.width / 2, visibleSize.height / 2);
     edgeNode->setPhysicsBody(edge);
     this->addChild(edgeNode);
 
-    //导入瓦片地图
-    auto* map = TMXTiledMap::create("test1.tmx");
-    map->setPosition(Vec2(0, 100));
-    addChild(map);
-
-    TMXLayer* blocklayer = map->getLayer("normal_block");//获取需要添加PhysicsBody的瓦片所在的图层
-    for (float i = 0; i <= 39; i++)
-    {
-        for (float j = 0; j <= 39; j++)
-        {
-            Blockstore[block_order].block_check = blocklayer->getTileAt(Vec2(i, j));//获取层里的瓦片，瓦片是精灵
-            if (Blockstore[block_order].block_check)//并不是所有位置都有瓦片，如果没有瓦片就是空
-            {               
-                Blockstore[block_order].exsistence = true;
-                Blockstore[block_order].life = 1;
-                auto blockBody = PhysicsBody::createBox(Blockstore[block_order].block_check->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
-                blockBody->setDynamic(false);
-                blockBody->setCategoryBitmask(1);
-                blockBody->setCollisionBitmask(1);
-                blockBody->setContactTestBitmask(1);
-                blockBody->setTag(block_order+1);
-                Blockstore[block_order].block_check->setPhysicsBody(blockBody);//给瓦片添加上PhysicsBody组件
-                block_order++;//start at 0
-            }
-        }
-    }
-
-    //获取需要打不动的砖块
-    TMXLayer* toughblocklayer = map->getLayer("tough_block");
-    for (float i = 0; i <= 39; i++)
-    {
-        for (float j = 0; j <= 39; j++)
-        {
-            toughBlockstore[toughblock_order].block_check = toughblocklayer->getTileAt(Vec2(i, j));//获取层里的瓦片，瓦片是精灵
-            if (toughBlockstore[toughblock_order].block_check)//并不是所有位置都有瓦片，如果没有瓦片就是空
-            {
-                toughBlockstore[toughblock_order].exsistence = true;
-                auto toughblockBody = PhysicsBody::createBox(toughBlockstore[toughblock_order].block_check->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
-                toughblockBody->setDynamic(false);
-                toughblockBody->setCategoryBitmask(1);
-                toughblockBody->setCollisionBitmask(1);
-                toughblockBody->setContactTestBitmask(1);
-                toughblockBody->setTag(-1000);//忽视
-                toughBlockstore[toughblock_order].block_check->setPhysicsBody(toughblockBody);//给瓦片添加上PhysicsBody组件
-                toughblock_order++;//start at 0
-            }
-        }
-    }
-
-    //获取bonus
-    TMXLayer* bonuslayer = map->getLayer("bonus");
-    for (float i = 39; i >=0 ; i--)
-    {
-        for (float j = 0; j <=39 ; j++)
-        {
-            bonus[bonus_order].block_check = bonuslayer->getTileAt(Vec2(i, j));//获取层里的瓦片，瓦片是精灵
-            if (bonus[bonus_order].block_check)//并不是所有位置都有瓦片，如果没有瓦片就是空
-            {
-                bonus[bonus_order].exsistence = true;
-                bonus[bonus_order].life = 0;
-                auto bonusBody = PhysicsBody::createBox(bonus[bonus_order].block_check->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
-                bonusBody->setDynamic(false);
-                bonusBody->setCategoryBitmask(1);
-                bonusBody->setCollisionBitmask(1);
-                bonusBody->setContactTestBitmask(1);
-                bonusBody->setTag(-1* bonus_order-1);
-                bonusBody->setGravityEnable(false);
-                bonus[bonus_order].block_check->setPhysicsBody(bonusBody);//给瓦片添加上PhysicsBody组件
-                bonus_order++;//start at 0
-            }
-        }
-    }
     
     //板
     board = Board::createBoard("board.png");
@@ -115,7 +46,7 @@ bool GameScene::initWithPhysics(int stage)
     auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 0.0f));
     boardBody->setCategoryBitmask(1);
     boardBody->setCollisionBitmask(1);
-    boardBody->setContactTestBitmask(1);
+    boardBody->setContactTestBitmask(0);
     boardBody->setRotationEnable(true);
     boardBody->setGravityEnable(false);
     boardBody->setDynamic(false);
@@ -173,8 +104,18 @@ bool GameScene::initWithPhysics(int stage)
 
     blocks_create(stage);
 
-    auto background = Sprite::create("background.png");
+    char stageBackgroundString[30];
+    sprintf(stageBackgroundString, "stage_%d_background.png", stage);
+    auto background = Sprite::create(stageBackgroundString);
+    background->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(background, -10);
+
+    Score = Label::createWithTTF("TextAlas", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
+    Score->setColor(Color3B(159, 168, 176)); //设置颜色
+    Score->setPosition(Vec2(visibleSize.width + 100, visibleSize.height) / 10);
+    Score->setString(GameScene::trans(score));
+    addChild(Score);
+    
 
     this->scheduleUpdate();
 
@@ -183,12 +124,96 @@ bool GameScene::initWithPhysics(int stage)
 
 void GameScene::blocks_create(int stage)
 {
+    char stageString[20];
     if (!stage)
     {
         auto rand = RandomHelper();
         stage = rand.random_int(1, 1);
     }
- 
+    sprintf(stageString, "stage_%d.tmx", stage);
+    //导入瓦片地图
+    map = TMXTiledMap::create(stageString);
+    map->setAnchorPoint(Vec2(0.5, 0.5));
+    map->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+    addChild(map);
+
+    TMXLayer* blocklayer = map->getLayer("normalBlock");//获取需要添加PhysicsBody的瓦片所在的图层
+    auto mapSize = map->getMapSize();
+    for (float i = 0; i < mapSize.width; i++)
+    {
+        for (float j = 0; j < mapSize.height; j++)
+        {
+           
+            if (blocklayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
+            {
+                Block rua;
+                rua.sprite = blocklayer->getTileAt(Vec2(i, j));
+                rua.exsistence = true;
+                rua.life = 1;
+                rua.bonus = 0;
+                rua.position = Vec2(i, j);
+                auto blockBody = PhysicsBody::createBox(rua.sprite->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
+                blockBody->setDynamic(false);
+                blockBody->setCategoryBitmask(1);
+                blockBody->setCollisionBitmask(1);
+                blockBody->setContactTestBitmask(1);
+                blockBody->setTag(block_order);
+                rua.sprite->setPhysicsBody(blockBody);//给瓦片添加上PhysicsBody组件
+                block_order++;//start at 0
+                Blocks.push_back(rua);
+            }
+        }
+    }
+
+    //获取需要打不动的砖块
+    TMXLayer* toughblocklayer = map->getLayer("toughBlock");
+    for (float i = 0; i < mapSize.width - 1; i++)
+    {
+        for (float j = 0; j < mapSize.height - 1; j++)
+        {
+            if (toughblocklayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
+            {
+                
+                auto toughblockBody = PhysicsBody::createBox(toughblocklayer->getTileAt(Vec2(i, j))->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
+                toughblockBody->setDynamic(false);
+                toughblockBody->setCategoryBitmask(1);
+                toughblockBody->setCollisionBitmask(1);
+                toughblockBody->setContactTestBitmask(0);
+                toughblockBody->setTag(0);//忽视
+                toughblocklayer->getTileAt(Vec2(i, j))->setPhysicsBody(toughblockBody);//给瓦片添加上PhysicsBody组件
+            }
+        }
+    }
+
+    //获取bonus
+    TMXLayer* bonuslayer = map->getLayer("bonusBlock");
+    for (float i = 0; i < mapSize.width; i++)
+    {
+        for (float j = 0; j < mapSize.height; j++)
+        {
+            if (bonuslayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
+            {
+                Block rua;
+                rua.exsistence = true;
+                rua.life = 1;
+                rua.bonus = 1;
+                rua.sprite = bonuslayer->getTileAt(Vec2(i, j));
+                rua.position = Vec2(i, j);
+                auto bonusBody = PhysicsBody::createBox(bonuslayer->getTileAt(Vec2(i, j))->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
+                bonusBody->setDynamic(false);
+                bonusBody->setCategoryBitmask(1);
+                bonusBody->setCollisionBitmask(1);
+                bonusBody->setContactTestBitmask(1);
+                bonusBody->setTag(block_order);
+                bonusBody->setGravityEnable(false);
+                rua.sprite->setPhysicsBody(bonusBody);//给瓦片添加上PhysicsBody组件
+                block_order++;
+                Blocks.push_back(rua);
+            }
+        }
+    }
+
+    
             /*小球加倍
             
             */
@@ -223,23 +248,50 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
 
     if (bodyA->getTag() == 0 && bodyB->getTag() >= 1)//b is a block
     {
-        Blockstore[bodyB->getTag() - 1].life -= 1;
-        if (Blockstore[bodyB->getTag() - 1].life <= 0)
+        Blocks[bodyB->getTag() - 1].life -= 1;
+        if (Blocks[bodyB->getTag() - 1].life <= 0)
         {
-            Blockstore[bodyB->getTag() - 1].block_check->removeFromParent();
-            Blockstore[bodyB->getTag() - 1].exsistence = false;
+            
+            Blocks[bodyB->getTag() - 1].exsistence = false;
+            if (Blocks[bodyB->getTag() - 1].bonus)
+            {
+                
+                bonus_create(Blocks[bodyB->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
+                map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
+            }
+            else
+            {
+                map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
+            }
+            score++;
+            Score->setString(GameScene::trans(score));
+            check_win();
         }
     }
     else if (bodyB->getTag() == 0 && bodyA->getTag() >= 1)
     {
-        Blockstore[bodyA->getTag() - 1].life -= 1;
-        if (Blockstore[bodyA->getTag() - 1].life <= 0)
+        
+        Blocks[bodyA->getTag() - 1].life -= 1;
+        if (Blocks[bodyA->getTag() - 1].life <= 0)
         {
-            Blockstore[bodyA->getTag() - 1].block_check->removeFromParent();
-            Blockstore[bodyA->getTag() - 1].exsistence = false;
+           
+            Blocks[bodyA->getTag() - 1].exsistence = false;
+            if (Blocks[bodyA->getTag() - 1].bonus)
+            {
+                bonus_create(Blocks[bodyA->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyA->getTag() - 1].position)->getPosition());
+                map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
+            }
+            else
+            {
+                
+                map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
+            }
+            score++;
+            Score->setString(GameScene::trans(score));
+            check_win();
         }
     }
-    else if (bodyB->getTag() == 0 && bodyA->getTag() < 0&& bodyA->getTag() !=-1000)
+   /* else if (bodyB->getTag() == 0 && bodyA->getTag() < 0&& bodyA->getTag() !=-1000)
     {
         
         bodyA->setGravityEnable(true);
@@ -254,20 +306,20 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
     }
     else if (bodyA->getTag() == 0 && bodyA->getTag() < 0 && bodyA->getTag() != -1000)
     {
-        removeChild(bonus[bodyA->getTag() * (-1) - 1].block_check);
-        bonus[bodyA->getTag() * (-1) - 1].exsistence = false;
+        removeChild(bonusBlocks[bodyA->getTag() * (-1) - 1].sprite);
+        bonusBlocks[bodyA->getTag() * (-1) - 1].exsistence = false;
         bodyA->removeFromWorld();
-        bonus[bodyA->getTag() * (-1) - 1].block_check->removeFromParent();
+        bonusBlocks[bodyA->getTag() * (-1) - 1].sprite->removeFromParent();
         GameScene::transform();//用type判断
     }
     else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
     {
-        removeChild(bonus[bodyB->getTag() * (-1) - 1].block_check);
-        bonus[bodyB->getTag() * (-1) - 1].exsistence = false;
+        removeChild(Blocks[bodyB->getTag() * (-1) - 1].sprite);
+        bonusBlocks[bodyB->getTag() * (-1) - 1].exsistence = false;
         bodyB->removeFromWorld();
-        bonus[bodyB->getTag() * (-1) - 1].block_check->removeFromParent();
+        bonusBlocks[bodyB->getTag() * (-1) - 1].sprite->removeFromParent();
         GameScene::transform();//用type判断
-    }
+    } */
     return true;  //返回true，才干够继续监听其他碰撞
 }
 
@@ -279,8 +331,17 @@ void GameScene::boardrotation()
 
 void GameScene::transform()
 {
-    ActionInterval* scaleto = ScaleTo::create(2, 0.5);
-    board->runAction(scaleto);
+    if (!isSmall)
+    {
+        
+        ActionInterval* scaleto = ScaleTo::create(0.5f, 0.5f);
+        auto delay = DelayTime::create(5.0f);
+        ActionInterval* scaleback = ScaleTo::create(0.5f, 1.0f);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameScene::isSmallChange, this));
+        CallFunc* func2 = func->clone();
+        auto sequence = Sequence::create(func, scaleto, delay, scaleback, func2, NULL);
+        board->runAction(sequence);
+    }
 }
 
 void GameScene::doubleball()
@@ -323,35 +384,9 @@ void GameScene::update(float dt)
                 board->setPositionX(board->getPosition().x + 20);
             }
         }
-
-        int it = 0;
-        for (it = 0; it != block_order; it++)
-        {
-            if (Blockstore[it].exsistence)
-            {
-                break;
-            }
-        }
-
-        if (it == block_order)//胜利的标志
-        {
-            signal_of_end = true;
-            auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
-            label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
-            this->addChild(label_success);
-            auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
-            auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
-            auto backbuttom = Menu::create(item_back, NULL);
-            backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
-            this->addChild(backbuttom);
-
-        }       
-
-        for (auto i = Balls.begin(); i < Balls.end(); i++)
+        for (auto i = Balls.begin(); i != Balls.end(); i++)
             if ((*i)->getPositionY() < board->getPositionY() - 50)
             {
-                if (it != block_order)
-                {
                     auto label_false = Label::createWithTTF("You Loser!", "fonts/Marker Felt.ttf", 148);
                     label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
                     this->addChild(label_false);
@@ -361,8 +396,24 @@ void GameScene::update(float dt)
                     backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
                     this->addChild(backbuttom);
                     Balls.back()->existence = false;
-                }
             }
+        for (int i = 0; i < Bonus.size(); i++)
+        {
+            Bonus[i]->setPosition(Vec2(Bonus[i]->getPosition().x, Bonus[i]->getPosition().y - 1));
+            if (board->getBoundingBox().containsPoint(Bonus[i]->getPosition()))
+            {
+                
+                switch (Bonus[i]->getTag())
+                {
+                    case 1:
+                        transform();
+                        break;
+                }
+                this->removeChild(Bonus[i]);
+                Bonus.erase(Bonus.begin() + i, Bonus.begin() + i + 1);
+                continue;
+            }
+        }
     }
     else if (!gameStart)
     {
@@ -394,20 +445,9 @@ void GameScene::update(float dt)
             }
         }
     }
-
-    //显示分数
-    int score = 0;
-    for (auto i = Blocks.begin(); i < Blocks.end(); i++)
-    {
-        if ((*i)->exsistence == false)
-            score++;
-    }
-    auto Score = Label::createWithTTF("TextAlas", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
-    Score->setColor(Color3B(159, 168, 176)); //设置颜色
-    Score->setPosition(Vec2(visibleSize.width + 100, visibleSize.height) / 10);
-    removeChild(Score);
-    addChild(Score);
-    Score->setString(GameScene::trans(score));
+    
+    
+   
 
 }
 std::string GameScene::trans(long long int value)
@@ -444,5 +484,48 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
                 break;
             }
     }
+}
+void GameScene::check_win()
+{
+    bool win = 1;
+    for (auto it = Blocks.begin(); it != Blocks.end(); it++)
+    {
+        if ((*it).exsistence)
+        {
+            win = 0;
+            break;
+        }
+    }
+    if (win)//胜利的标志
+    {
+
+        auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
+        label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+        this->addChild(label_success);
+        auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
+        auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
+        auto backbuttom = Menu::create(item_back, NULL);
+        backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
+        this->addChild(backbuttom);
+    }
+}
+void GameScene::bonus_create(int type, Vec2 position)
+{
+    char bonusString[20];
+    sprintf(bonusString, "bonus_%d.png", type);
+    auto bonus = Sprite::create(bonusString);
+    bonus->setPosition(position);
+    bonus->setTag(type);
+    bonus->setAnchorPoint(Vec2(0.5f, 0));
+    this->addChild(bonus);
+    Bonus.push_back(bonus);
+    
+}
+void GameScene::isSmallChange()
+{
+    if (isSmall)
+        isSmall = false;
+    else
+        isSmall = true;
 }
 

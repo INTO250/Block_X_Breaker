@@ -3,6 +3,7 @@
 #define  _GAME_SCENE_H_
 #include<iostream>
 #include<string>
+#include <vector>
 #include "cocos2d.h"
 #include "Ball.h"
 #include "Board.h"
@@ -15,15 +16,13 @@ public:
     static cocos2d::Scene* createScene(int stage);
     virtual bool initWithPhysics(int stage);
     static cocos2d::PhysicsWorld* world;
-    std::vector<Block*> Blocks;
-    Block Blockstore[1000];
-    Block toughBlockstore[1000];
-    Block bonus[1000];
+    std::vector<Block> Blocks;
     std::vector<Ball*> Balls;
     Board* board;
     Arrow* arrow;
     Arrow* powerArrow;
     Arrow* powerpng;
+    
     void blocks_create(int stage);
     void onEnter();
     void update(float dt);
@@ -41,10 +40,18 @@ public:
     void BackToStage(cocos2d::Ref* pSender);
     int power=0;
     int shootvec = 0;//初始发射方向
-    int remainBlocks = 0;
+
     std::string trans(long long int value);
-    int block_order = 0;
-    int toughblock_order = 0;
-    int bonus_order = 0;
+    int block_order = 1;
+
+    void bonus_create(int type, cocos2d::Vec2);
+    void check_win();
+    int score = 0;
+    cocos2d::Label* Score;
+    cocos2d::TMXTiledMap* map;
+
+    std::vector<cocos2d::Sprite*> Bonus;
+    bool isSmall = false;
+    void isSmallChange();
 };
 #endif

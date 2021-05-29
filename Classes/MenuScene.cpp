@@ -4,7 +4,7 @@
 #include "StageSelectScene.h"
 #include "SettingsScene.h"
 USING_NS_CC;
-#define BG_HEIGHT 1440
+#define BG_HEIGHT 1404
 extern int BGM;
 extern float volumeSound;
 Scene* MenuScene::createScene()

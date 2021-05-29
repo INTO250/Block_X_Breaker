@@ -5,7 +5,7 @@
 USING_NS_CC;
 extern int BGM;
 extern float volumeSound;
-#define BG_HEIGHT 1440
+#define BG_HEIGHT 1404
 cocos2d::Scene* SettingsScene::createScene()
 {
 	return SettingsScene::create();
@@ -39,27 +39,27 @@ bool SettingsScene::init()
     musicSlider->loadSlidBallTextures("slider_node.png", "slider_node.png", "slider_node.png");
     musicSlider->loadProgressBarTexture("slider_front.png");
     musicSlider->setPercent(AudioEngine::getVolume(BGM) * 100);
-    musicSlider->setPosition(Vec2(visibleSize.width / 2 + 150, visibleSize.height / 2 + 50));
+    musicSlider->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 + 50));
     musicSlider->addEventListener(CC_CALLBACK_2(SettingsScene::onMusicSliderMoved, this));
     this->addChild(musicSlider);
     
-    auto volumeLabel = Label::createWithTTF("Music","fonts/Marker Felt.ttf", 48);
-    volumeLabel->setTextColor(Color4B::WHITE);
-    volumeLabel->setPosition(Vec2(visibleSize.width / 2 -300, visibleSize.height / 2 + 50));
-    this->addChild(volumeLabel);
+    auto musicLabel = Label::createWithTTF("Music","fonts/Marker Felt.ttf", 48);
+    musicLabel->setTextColor(Color4B::WHITE);
+    musicLabel->setPosition(Vec2(visibleSize.width / 2 , visibleSize.height / 2 + 150));
+    this->addChild(musicLabel);
 
     soundSlider = ui::Slider::create();
     soundSlider->loadBarTexture("slider_back.png");
     soundSlider->loadSlidBallTextures("slider_node.png", "slider_node.png", "slider_node.png");
     soundSlider->loadProgressBarTexture("slider_front.png");
     soundSlider->setPercent(volumeSound * 100);
-    soundSlider->setPosition(Vec2(visibleSize.width / 2 + 150, visibleSize.height / 2 - 150));
+    soundSlider->setPosition(Vec2(visibleSize.width / 2 , visibleSize.height / 2 - 150));
     soundSlider->addEventListener(CC_CALLBACK_2(SettingsScene::onSoundSliderMoved, this));
     this->addChild(soundSlider);
    
     auto soundLabel = Label::createWithTTF("Sound", "fonts/Marker Felt.ttf", 48);
     soundLabel->setTextColor(Color4B::WHITE);
-    soundLabel->setPosition(Vec2(visibleSize.width / 2 - 300, visibleSize.height / 2 - 150));
+    soundLabel->setPosition(Vec2(visibleSize.width / 2 , visibleSize.height / 2 - 50));
     this->addChild(soundLabel);
 
     this->scheduleUpdate();
