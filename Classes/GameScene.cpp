@@ -1,5 +1,8 @@
 #include "GameScene.h"
 #include "StageSelectScene.h"
+#include "AudioEngine.h"
+extern float volumeSound;
+extern int BGM;
 USING_NS_CC;
 
 Scene* GameScene::createScene(int stage)
@@ -28,20 +31,43 @@ bool GameScene::initWithPhysics(int stage)
     getPhysicsWorld()->setGravity(gravity);
     this->getPhysicsWorld()->setAutoStep(true);
 
-    auto edge = PhysicsBody::createEdgeBox(visibleSize, PhysicsMaterial(1.0f, 1.0f, 0.0f));
+    auto edge = PhysicsBody::createEdgeBox(Size(visibleSize.width, visibleSize.height - 216), PhysicsMaterial(1.0f, 1.0f, 0.0f));
     edge->setTag(0);
     edge->setCategoryBitmask(1);
     edge->setCollisionBitmask(1);
     edge->setContactTestBitmask(0);
     auto edgeNode = Node::create();
-    edgeNode->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+    edgeNode->setPosition(visibleSize.width / 2, visibleSize.height / 2 - 108);
     edgeNode->setPhysicsBody(edge);
     this->addChild(edgeNode);
 
+    auto scoreBoard = Sprite::create("score_board.png");
+    scoreBoard->setAnchorPoint(Vec2(0, 1));
+    scoreBoard->setPosition(Vec2(0, 1404));
+    this->addChild(scoreBoard);
+
+    auto pauseButton = MenuItemImage::create("pause_button.png", "pause_button_selected.png", CC_CALLBACK_1(GameScene::onButtonPressed, this));
+    auto pauseButtonMenu = Menu::create(pauseButton, NULL);
+    pauseButton->setAnchorPoint(Vec2(1, 1));
+    pauseButtonMenu->setAnchorPoint(Vec2(1, 1));
+    pauseButtonMenu->setPosition(Vec2(648, 1404));
+    this->addChild(pauseButtonMenu);
+
+    Score = Label::createWithTTF("TextAlas", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
+    Score->setColor(Color3B::WHITE); //设置颜色
+    Score->setPosition(Vec2(100, 1274));
+    Score->setString(GameScene::trans(score));
+    this->addChild(Score);
+
+    auto scoreLabel = Label::createWithTTF("Score", "fonts/Marker Felt.ttf", 50);
+    scoreLabel->setColor(Color3B::WHITE);
+    scoreLabel->setPosition(Vec2(100, 1354));
+    this->addChild(scoreLabel);
     
     //板
     board = Board::createBoard("board.png");
     board->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5));
+    board->life = 3;
     this->addChild(board);
     auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 0.0f));
     boardBody->setCategoryBitmask(1);
@@ -52,6 +78,7 @@ bool GameScene::initWithPhysics(int stage)
     boardBody->setDynamic(false);
     boardBody->setTag(0);
     board->setPhysicsBody(boardBody);
+    
 
     //蓄力槽
     powerpng = Arrow::createArrow("power.png");
@@ -67,7 +94,7 @@ bool GameScene::initWithPhysics(int stage)
     arrow = Arrow::createArrow("arrow.png");
     arrow->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5 + 100));
     this->addChild(arrow);
-    auto arrowBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(0.f, 0.0f, 0.0f));
+    /*auto arrowBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(0.f, 0.0f, 0.0f));
     arrowBody->setCategoryBitmask(0);
     arrowBody->setCollisionBitmask(1);
     arrowBody->setContactTestBitmask(1);
@@ -76,6 +103,7 @@ bool GameScene::initWithPhysics(int stage)
     arrowBody->setDynamic(false);
     arrowBody->setTag(0);
     arrow->setPhysicsBody(arrowBody);
+    */
 
     //球
     Balls.push_back(Ball::createBall("ball.png"));
@@ -93,12 +121,6 @@ bool GameScene::initWithPhysics(int stage)
     ballBody->setTag(0);
     Balls.back()->setPhysicsBody(ballBody);
 
-    auto label_back = Label::createWithTTF("End", "fonts/Marker Felt.ttf", 48);
-    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
-    auto backbuttom = Menu::create(item_back, NULL);
-    backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height) / 10);
-    this->addChild(backbuttom);
-
     joint = PhysicsJointPin::construct(Balls.back()->getPhysicsBody(), board->getPhysicsBody(), Vec2(Balls.back()->getAnchorPoint().x, Balls.back()->getAnchorPoint().y - Balls.back()->getContentSize().height / 2), board->getAnchorPoint());
     getPhysicsWorld()->addJoint(joint);
 
@@ -110,11 +132,9 @@ bool GameScene::initWithPhysics(int stage)
     background->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(background, -10);
 
-    Score = Label::createWithTTF("TextAlas", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
-    Score->setColor(Color3B(159, 168, 176)); //设置颜色
-    Score->setPosition(Vec2(visibleSize.width + 100, visibleSize.height) / 10);
-    Score->setString(GameScene::trans(score));
-    addChild(Score);
+   
+
+    
     
 
     this->scheduleUpdate();
@@ -236,9 +256,16 @@ void GameScene::onEnter()
     keyboardListener->onKeyPressed = CC_CALLBACK_2(GameScene::onKeyPressed, this);
     keyboardListener->onKeyReleased = CC_CALLBACK_2(GameScene::onKeyReleased, this);
 
+    auto touchListener = EventListenerTouchOneByOne::create();
+    touchListener->setSwallowTouches(true);
+    touchListener->onTouchBegan = CC_CALLBACK_2(GameScene::onTouchBegan, this);
+    touchListener->onTouchEnded = CC_CALLBACK_2(GameScene::onTouchEnded, this);
+
+
     auto dispatcher = Director::getInstance()->getEventDispatcher();
     dispatcher->addEventListenerWithSceneGraphPriority(contactListener, this);
     dispatcher->addEventListenerWithSceneGraphPriority(keyboardListener, this);
+    dispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
 }
 
 bool GameScene::onContactBegin(const PhysicsContact& contact)
@@ -370,14 +397,14 @@ void GameScene::update(float dt)
     { 
         bool signal_of_end = false;
 
-        if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
+        if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW] || touches["left"])
         {
             if (board->getPosition().x > 0)
             {
                 board->setPositionX(board->getPosition().x - 20);
             }
         }
-        if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW])
+        if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW] || touches["right"])
         {
             if (board->getPosition().x < 1000)
             {
@@ -391,7 +418,7 @@ void GameScene::update(float dt)
                     label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
                     this->addChild(label_false);
                     auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
-                    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
+                    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
                     auto backbuttom = Menu::create(item_back, NULL);
                     backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
                     this->addChild(backbuttom);
@@ -417,26 +444,26 @@ void GameScene::update(float dt)
     }
     else if (!gameStart)
     {
-        if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW])
+        if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW] || touches["left"])
         {
             if (shootvec >= -12)
             {
-                ActionInterval* actionBy = RotateBy::create(0.01f, -5.f);
+                ActionInterval* actionBy = RotateBy::create(0, -5.f);
                 arrow->runAction(Sequence::create(actionBy, NULL));
                 shootvec--;
             }
         }
-        if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW])
+        if (keys[EventKeyboard::KeyCode::KEY_RIGHT_ARROW] || touches["right"])
         {
             if (shootvec <= 12)
             {
-                ActionInterval* actionBy = RotateBy::create(0.01f, 5.f);
+                ActionInterval* actionBy = RotateBy::create(0, 5.f);
                 arrow->runAction(Sequence::create(actionBy, NULL));
                 shootvec++;
             }
         }       
 
-        if (keys[EventKeyboard::KeyCode::KEY_SPACE])
+        if (keys[EventKeyboard::KeyCode::KEY_SPACE] || touches["middle"])
         {
             if (power <= 50)
             {
@@ -455,10 +482,6 @@ std::string GameScene::trans(long long int value)
     char buff[16];
     snprintf(buff, sizeof(buff), "%lld", value);
     return buff;
-}
-void GameScene::BackToStage(cocos2d::Ref* pSender)
-{
-    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, StageSelect::create()));
 }
 
 void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event)
@@ -503,7 +526,7 @@ void GameScene::check_win()
         label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
         this->addChild(label_success);
         auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
-        auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::BackToStage, this));
+        auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
         auto backbuttom = Menu::create(item_back, NULL);
         backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
         this->addChild(backbuttom);
@@ -527,5 +550,49 @@ void GameScene::isSmallChange()
         isSmall = false;
     else
         isSmall = true;
+}
+void GameScene::onButtonPressed(Ref* pSender)
+{
+    auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+    float volumeBGM = AudioEngine::getVolume(BGM);
+    AudioEngine::stop(BGM);
+    BGM = AudioEngine::play2d("stage_select_BGM.mp3", true, volumeBGM);
+    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, StageSelect::createScene()));
+}
+bool GameScene::onTouchBegan(Touch* touch, Event* event)
+{
+    if (touch->getLocation().y < 1000)
+    {
+        if (touch->getLocation().x < 216)
+            touches["left"] = true;
+        else if (touch->getLocation().x > 432)
+            touches["right"] = true;
+        else
+            touches["middle"] = true;
+        return true;
+    }
+    else
+        return false;
+}
+void GameScene::onTouchEnded(Touch* touch, Event* event)
+{
+    if (touch->getLocation().x < 216)
+        touches["left"] = false;
+    else if (touch->getLocation().x > 432)
+        touches["right"] = false;
+    else
+    {
+        touches["middle"] = false;
+        if (!gameStart)
+        {
+            Balls.back()->getPhysicsBody()->setRotationEnable(true);
+            gameStart = true;
+            getPhysicsWorld()->removeJoint(joint);
+            Balls.back()->getPhysicsBody()->setVelocity(Vec2(10.f * power * (float)sin(5 * (long long)shootvec * 3.14 / 180), power * 10.f * (float)cos(5 * (long long)shootvec * 3.14 / 180)));
+            removeChild(arrow, true);
+            removeChild(powerArrow, true);
+            removeChild(powerpng, true);
+        }
+    }
 }
 

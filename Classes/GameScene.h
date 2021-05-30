@@ -34,10 +34,11 @@ public:
     void doubleball();
     void transform();
     std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
+    std::map<std::string, bool> touches;
     cocos2d::PhysicsJointPin* joint;
     bool gameStart;
     cocos2d::Size visibleSize;
-    void BackToStage(cocos2d::Ref* pSender);
+   // void BackToStage(cocos2d::Ref* pSender);
     int power=0;
     int shootvec = 0;//初始发射方向
 
@@ -53,5 +54,9 @@ public:
     std::vector<cocos2d::Sprite*> Bonus;
     bool isSmall = false;
     void isSmallChange();
+
+    void onButtonPressed(cocos2d::Ref* pSender);
+    bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
+    void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
 };
 #endif
