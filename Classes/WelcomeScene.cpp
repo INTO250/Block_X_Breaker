@@ -1,6 +1,7 @@
 #include "WelcomeScene.h"
 #include "MenuScene.h"
 #include "AudioEngine.h"
+#include "SettingsScene.h"
 USING_NS_CC;
 int BGM;
 float volumeSound = 1.0f;

@@ -1,22 +1,18 @@
-#include "GameScene.h"
+#include "OnlineScene.h"
 #include "StageSelectScene.h"
 #include "AudioEngine.h"
 #include <cmath>
 extern float volumeSound;
 extern int BGM;
+extern std::string IPAddr;
+extern SOCKET client;
 USING_NS_CC;
 
-Scene* GameScene::createScene(int stage)
+Scene* OnlineScene::createScene()
 {
-    GameScene* rua = new GameScene();
-    if (rua->initWithPhysics(stage))
-    {
-        rua->autorelease();
-        return rua;
-    }
-    return NULL;
+    return OnlineScene::create();
 }
-bool GameScene::initWithPhysics(int stage)
+bool OnlineScene::initWithPhysics()
 {
     if (!Scene::initWithPhysics())
     {
@@ -28,7 +24,21 @@ bool GameScene::initWithPhysics(int stage)
     gameStart = false;
     srand((unsigned)time(NULL));
 
-    
+    sockaddr_in serveraddr;
+    serveraddr.sin_family = AF_INET;//对这个类进行初始化
+    serveraddr.sin_port = htons(12345);
+    serveraddr.sin_addr.s_addr = inet_addr(IPAddr.c_str());
+
+    while (1)
+    {
+        char dataRecv[1024];
+        if (recv(client, dataRecv, 1023, 0) != -1)
+        {
+            stage = atoi(dataRecv);
+            break;
+        }
+    }
+   
 
     Vec2 gravity = Vec2(0.0f, 0.0f);
     getPhysicsWorld()->setGravity(gravity);
@@ -40,10 +50,10 @@ bool GameScene::initWithPhysics(int stage)
     edge->setCollisionBitmask(1);
     edge->setContactTestBitmask(0);
     auto edgeNode = Node::create();
-    edgeNode->setPosition(visibleSize.width / 2, visibleSize.height / 2 - 108);
+    edgeNode->setPosition(visibleSize.width / 2, 0);
     edgeNode->setPhysicsBody(edge);
     this->addChild(edgeNode);
-
+    /*
     auto scoreBoard = Sprite::create("score_board.png");
     scoreBoard->setAnchorPoint(Vec2(0, 1));
     scoreBoard->setPosition(Vec2(0, 1404));
@@ -66,7 +76,7 @@ bool GameScene::initWithPhysics(int stage)
     scoreLabel->setColor(Color3B::WHITE);
     scoreLabel->setPosition(Vec2(100, 1354));
     this->addChild(scoreLabel);
-    
+
     //板
     board = Board::createBoard("board.png");
     board->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5));
@@ -92,11 +102,11 @@ bool GameScene::initWithPhysics(int stage)
     lifeLabel->setColor(Color3B::WHITE);
     lifeLabel->setPosition(Vec2(350, 1354));
     this->addChild(lifeLabel);
-    
+
 
     //蓄力槽
     powerpng = Arrow::createArrow("power.png");
-    powerpng->setPosition(Vec2(visibleSize.width / 3, visibleSize.height / 5+100));
+    powerpng->setPosition(Vec2(visibleSize.width / 3, visibleSize.height / 5 + 100));
     this->addChild(powerpng);
 
     //蓄力槽arrow
@@ -131,7 +141,7 @@ bool GameScene::initWithPhysics(int stage)
 
 
 
-    
+
 
     blocks_create(stage);
 
@@ -141,16 +151,16 @@ bool GameScene::initWithPhysics(int stage)
     background->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(background, -10);
 
-   
 
-    
-    
+
+
+
 
     this->scheduleUpdate();
-
+    */
     return true;
 }
-
+/*
 void GameScene::blocks_create(int stage)
 {
     char stageString[20];
@@ -172,7 +182,7 @@ void GameScene::blocks_create(int stage)
     {
         for (float j = 0; j < mapSize.height; j++)
         {
-           
+
             if (blocklayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
             {
                 Block rua;
@@ -202,7 +212,7 @@ void GameScene::blocks_create(int stage)
         {
             if (toughblocklayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
             {
-                
+
                 auto toughblockBody = PhysicsBody::createBox(toughblocklayer->getTileAt(Vec2(i, j))->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
                 toughblockBody->setDynamic(false);
                 toughblockBody->setCategoryBitmask(1);
@@ -242,18 +252,18 @@ void GameScene::blocks_create(int stage)
         }
     }
 
+
+    /*小球加倍
+
+    */
+
+    /*缩放
+    ActionInterval * scaleto = ScaleTo ::create(2, 0.5);
+    board->runAction(scaleto);
+    break;
     
-            /*小球加倍
-            
-            */
-
-            /*缩放
-            ActionInterval * scaleto = ScaleTo ::create(2, 0.5);
-            board->runAction(scaleto);
-            break;
-            */ 
-}
-
+}*/
+/*
 void GameScene::onEnter()
 {
     Scene::onEnter();
@@ -287,11 +297,11 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
         Blocks[bodyB->getTag() - 1].life -= 1;
         if (Blocks[bodyB->getTag() - 1].life <= 0)
         {
-            
+
             Blocks[bodyB->getTag() - 1].exsistence = false;
             if (Blocks[bodyB->getTag() - 1].bonus)
             {
-                
+
                 bonus_create(Blocks[bodyB->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
                 map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
             }
@@ -306,11 +316,11 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
     }
     else if (bodyB->getTag() == 0 && bodyA->getTag() >= 1)
     {
-        
+
         Blocks[bodyA->getTag() - 1].life -= 1;
         if (Blocks[bodyA->getTag() - 1].life <= 0)
         {
-           
+
             Blocks[bodyA->getTag() - 1].exsistence = false;
             if (Blocks[bodyA->getTag() - 1].bonus)
             {
@@ -319,7 +329,7 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
             }
             else
             {
-                
+
                 map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
             }
             score++;
@@ -327,38 +337,38 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
             check_win();
         }
     }
-   /* else if (bodyB->getTag() == 0 && bodyA->getTag() < 0&& bodyA->getTag() !=-1000)
-    {
-        
-        bodyA->setGravityEnable(true);
-        bodyA->setVelocity(Vec2(0,100));
-        GameScene::transform();//用type判断
-    }
-    else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
-    {
-        
-        bodyB->setGravityEnable(true);
-        bodyB->setVelocity(Vec2(0, -100)); 
-    }
-    else if (bodyA->getTag() == 0 && bodyA->getTag() < 0 && bodyA->getTag() != -1000)
-    {
-        removeChild(bonusBlocks[bodyA->getTag() * (-1) - 1].sprite);
-        bonusBlocks[bodyA->getTag() * (-1) - 1].exsistence = false;
-        bodyA->removeFromWorld();
-        bonusBlocks[bodyA->getTag() * (-1) - 1].sprite->removeFromParent();
-        GameScene::transform();//用type判断
-    }
-    else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
-    {
-        removeChild(Blocks[bodyB->getTag() * (-1) - 1].sprite);
-        bonusBlocks[bodyB->getTag() * (-1) - 1].exsistence = false;
-        bodyB->removeFromWorld();
-        bonusBlocks[bodyB->getTag() * (-1) - 1].sprite->removeFromParent();
-        GameScene::transform();//用type判断
-    } */
+    /* else if (bodyB->getTag() == 0 && bodyA->getTag() < 0&& bodyA->getTag() !=-1000)
+     {
+
+         bodyA->setGravityEnable(true);
+         bodyA->setVelocity(Vec2(0,100));
+         GameScene::transform();//用type判断
+     }
+     else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
+     {
+
+         bodyB->setGravityEnable(true);
+         bodyB->setVelocity(Vec2(0, -100));
+     }
+     else if (bodyA->getTag() == 0 && bodyA->getTag() < 0 && bodyA->getTag() != -1000)
+     {
+         removeChild(bonusBlocks[bodyA->getTag() * (-1) - 1].sprite);
+         bonusBlocks[bodyA->getTag() * (-1) - 1].exsistence = false;
+         bodyA->removeFromWorld();
+         bonusBlocks[bodyA->getTag() * (-1) - 1].sprite->removeFromParent();
+         GameScene::transform();//用type判断
+     }
+     else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
+     {
+         removeChild(Blocks[bodyB->getTag() * (-1) - 1].sprite);
+         bonusBlocks[bodyB->getTag() * (-1) - 1].exsistence = false;
+         bodyB->removeFromWorld();
+         bonusBlocks[bodyB->getTag() * (-1) - 1].sprite->removeFromParent();
+         GameScene::transform();//用type判断
+     } 
     return true;  //返回true，才干够继续监听其他碰撞
 }
-
+/*
 void GameScene::boardrotation()
 {
     ActionInterval* actionTo = RotateTo::create(50, 180);
@@ -369,7 +379,7 @@ void GameScene::transform()
 {
     if (!isSmall)
     {
-        
+
         ActionInterval* scaleto = ScaleTo::create(0.5f, 0.5f);
         auto delay = DelayTime::create(5.0f);
         ActionInterval* scaleback = ScaleTo::create(0.5f, 1.0f);
@@ -384,27 +394,28 @@ void GameScene::doubleball()
 {
     for (int i = 0; i < 1; i++)
     {
-       /* Balls.push_back(Ball::createBall("ball.png"));
-        Balls.back()->setPosition(Vec2(Balls[0]->getPositionX(), Balls[0]->getPositionY()+1000));
-        Balls.back()->existence = true;
+        /* Balls.push_back(Ball::createBall("ball.png"));
+         Balls.back()->setPosition(Vec2(Balls[0]->getPositionX(), Balls[0]->getPositionY()+1000));
+         Balls.back()->existence = true;
 
-        this->addChild(Balls.back());
+         this->addChild(Balls.back());
 
-        auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
-        ballBody->setCategoryBitmask(1);
-        ballBody->setCollisionBitmask(1);
-        ballBody->setContactTestBitmask(1);
-        ballBody->setRotationEnable(false);
-        ballBody->setGravityEnable(true);
-        ballBody->setTag(0);
-        Balls.back()->setPhysicsBody(ballBody); */    }
+         auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
+         ballBody->setCategoryBitmask(1);
+         ballBody->setCollisionBitmask(1);
+         ballBody->setContactTestBitmask(1);
+         ballBody->setRotationEnable(false);
+         ballBody->setGravityEnable(true);
+         ballBody->setTag(0);
+         Balls.back()->setPhysicsBody(ballBody); 
+    }
 }
 void GameScene::update(float dt)
 {
     getPhysicsWorld()->setSpeed(MIN(1.0f + 0.02 * score, 3.0f));
-    
+
     if (gameStart)
-    { 
+    {
         bool signal = true;
 
         if (keys[EventKeyboard::KeyCode::KEY_LEFT_ARROW] || touches["left"])
@@ -430,8 +441,8 @@ void GameScene::update(float dt)
                 {
                     this->removeChild(Balls[i]);
                     Balls[i]->existence = false;
-                   
-                    
+
+
                 }
             }
         }
@@ -484,10 +495,10 @@ void GameScene::update(float dt)
                 auto backbuttom = Menu::create(item_back, NULL);
                 backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
                 this->addChild(backbuttom);
-                
+
                 gameStart = false;
                 gameEnd = true;
-                
+
             }
         }
         for (int i = 0; i < Bonus.size(); i++)
@@ -495,7 +506,7 @@ void GameScene::update(float dt)
             Bonus[i]->setPosition(Vec2(Bonus[i]->getPosition().x, Bonus[i]->getPosition().y - 1));
             if (board->getBoundingBox().containsPoint(Bonus[i]->getPosition()))
             {
-                
+
                 switch (Bonus[i]->getTag())
                 {
                     case 1:
@@ -527,20 +538,20 @@ void GameScene::update(float dt)
                 arrow->runAction(Sequence::create(actionBy, NULL));
                 shootvec++;
             }
-        }       
+        }
 
         if (keys[EventKeyboard::KeyCode::KEY_SPACE] || touches["middle"])
         {
             if (power <= 50)
             {
-                power++;                
+                power++;
                 powerArrow->setPositionY(powerArrow->getPosition().y + 3);
             }
         }
     }
-    
-    
-   
+
+
+
 
 }
 std::string GameScene::trans(long long int value)
@@ -563,10 +574,10 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
         case EventKeyboard::KeyCode::KEY_SPACE:
             if (!gameStart)
             {
-                
+
                 Balls[0]->getPhysicsBody()->setDynamic(true);
                 gameStart = true;
-             
+
                 Balls[0]->getPhysicsBody()->setVelocity(Vec2((float)2.0f * (power + 50) * sin(5 * shootvec * 3.14 / 180), (power + 50) * 2.0f * cos(5 * shootvec * 3.14 / 180)));
                 removeChild(arrow, true);
                 removeChild(powerArrow, true);
@@ -611,7 +622,7 @@ void GameScene::bonus_create(int type, Vec2 position)
     bonus->setAnchorPoint(Vec2(0.5f, 0));
     this->addChild(bonus);
     Bonus.push_back(bonus);
-    
+
 }
 void GameScene::isSmallChange()
 {
@@ -654,10 +665,10 @@ void GameScene::onTouchEnded(Touch* touch, Event* event)
         touches["middle"] = false;
         if (!gameStart)
         {
-       
+
             Balls[0]->getPhysicsBody()->setDynamic(true);
             gameStart = true;
-      
+
             Balls[0]->getPhysicsBody()->setVelocity(Vec2(2.0f * (power + 50) * (float)sin(5 * (long long)shootvec * 3.14 / 180), (power + 50) * 2.0f * (float)cos(5 * (long long)shootvec * 3.14 / 180)));
             removeChild(arrow, true);
             removeChild(powerArrow, true);
@@ -667,3 +678,4 @@ void GameScene::onTouchEnded(Touch* touch, Event* event)
         }
     }
 }
+*/

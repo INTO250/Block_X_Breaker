@@ -17,6 +17,7 @@ public:
 	void onSoundSliderMoved(cocos2d::Ref* pSender, cocos2d::ui::Slider::EventType type);
 	cocos2d::ui::Slider* musicSlider;
 	cocos2d::ui::Slider* soundSlider;
+	cocos2d::ui::TextField* IP;
 	CREATE_FUNC(SettingsScene);
 };
 #endif

@@ -3,14 +3,14 @@
  <tileset firstgid="1" source="normal_block.tsx"/>
  <tileset firstgid="2" source="tough_block.tsx"/>
  <tileset firstgid="3" source="bonus1.tsx"/>
- <layer id="5" name="background" width="20" height="40">
+ <layer id="5" name="background" width="20" height="40" visible="0">
   <data encoding="base64" compression="zlib">
    eJztwTEBAAAAwqD1T20LL6AAAAA+BgyAAAE=
   </data>
  </layer>
  <layer id="1" name="normalBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo2BgASMDgwI18FA0j5KwGjVv1DxKzRvs+YMa5o2CUTAKRsEoGHwAAB4rFB0=
+   eJzt0sEJACAMBMGzE/uv0gaMiRKJwi7cdx4hElFtTeoZK/DkLOJ5hmla3sbd8T70kv9ltqVz4IV2yyMiovcaB18SoQ==
   </data>
  </layer>
  <layer id="3" name="bonusBlock" width="20" height="40">
@@ -20,7 +20,7 @@
  </layer>
  <layer id="4" name="toughBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo2AUDBRgIhETYx4pdhOrBpsb0MUG0n3oYrjESTUP3b+DwTxqppdRMApGwSgYBaNgIAAA+14AYQ==
+   eJxjYBgFo2AUjAL8gAkJ4xMbDICabkL372AzbxSMglEwCkbBKBiKAADIMAAZ
   </data>
  </layer>
 </map>
