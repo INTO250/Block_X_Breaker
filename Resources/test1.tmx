@@ -8,17 +8,17 @@
    eJztwQENAAAAwqD3T20PBxQAAAAAAMCXARkAAAE=
   </data>
  </layer>
- <layer id="1" name="normal_block" width="40" height="40">
+ <layer id="1" name="normalBlock" width="40" height="40">
   <data encoding="base64" compression="zlib">
    eJzt1MEJADAIADG7/9LOUIpaJAGfyr2MALY4DbO9r5K+2fv6Zver7+t73//9P+sDAADgVgJgRwCO
   </data>
  </layer>
- <layer id="3" name="tough_block" width="40" height="40">
+ <layer id="3" name="toughBlock" width="40" height="40">
   <data encoding="base64" compression="zlib">
    eJzt1LEJADAMA0GT/YdOlQ0iEOYO3IqvPAPAc4L3qy9BX8euvo6d1G77fwEAAIBtLg64AHU=
   </data>
  </layer>
- <layer id="4" name="bonus" width="40" height="40">
+ <layer id="4" name="bonusBlock" width="40" height="40">
   <data encoding="base64" compression="zlib">
    eJzt07EJADAMA0GB9985OyQ4YHxXfaNSCQAAzFANDfxTuf/fyxYAgJ0Ovi8AIg==
   </data>

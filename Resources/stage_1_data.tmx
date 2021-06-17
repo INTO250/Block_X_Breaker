@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.5" tiledversion="1.6.0" orientation="orthogonal" renderorder="right-down" width="20" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="1">
+ <tileset firstgid="1" source="normal_block.tsx"/>
+ <tileset firstgid="2" source="tough_block.tsx"/>
+ <tileset firstgid="3" source="bonus1.tsx"/>
+ <layer id="5" name="background" width="20" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztwTEBAAAAwqD1T20JT6AAAHgaCWAAAQ==
+  </data>
+ </layer>
+ <layer id="1" name="normalBlock" width="20" height="30">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2BgASMDgwI18FA0j5KwGjVv1DxKzRvs+YMa5o2CUTBQAAA/2hQd
+  </data>
+ </layer>
+ <layer id="3" name="bounsBlock" width="20" height="30">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFgxEwQzE19ZFrHjly1NQzCkbBKBgFo2AUDDUAALuwABk=
+  </data>
+ </layer>
+ <layer id="4" name="toughBlock" width="20" height="30">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2AUDBRgIhETYx4pdhOrBpsb0MUG0n3oYrjESTUP3b+DwTxqppdRMApGAe0AAMwvAGE=
+  </data>
+ </layer>
+</map>

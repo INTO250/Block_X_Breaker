@@ -1,8 +1,10 @@
 #pragma once
 #ifndef  _GAME_SCENE_H_
 #define  _GAME_SCENE_H_
+
 #include<iostream>
 #include<string>
+#include <vector>
 #include "cocos2d.h"
 #include "Ball.h"
 #include "Board.h"
@@ -12,18 +14,16 @@
 class GameScene : public cocos2d::Scene
 {
 public:
-    static cocos2d::Scene* createScene(int stage);
-    virtual bool initWithPhysics(int stage);
+    static cocos2d::Scene* createScene(int stage,int oriscore=0);
+    virtual bool initWithPhysics(int stage, int oriscore = 0);
     static cocos2d::PhysicsWorld* world;
-    std::vector<Block*> Blocks;
-    Block Blockstore[1000];
-    Block toughBlockstore[1000];
-    Block bonus[1000];
-    std::vector<Ball*> Balls;
+    std::vector<Block> Blocks;
+    Ball* Balls[3];
     Board* board;
     Arrow* arrow;
     Arrow* powerArrow;
     Arrow* powerpng;
+    
     void blocks_create(int stage);
     void onEnter();
     void update(float dt);
@@ -35,16 +35,36 @@ public:
     void doubleball();
     void transform();
     std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
-    cocos2d::PhysicsJointPin* joint;
+    std::map<std::string, bool> touches;
+ 
     bool gameStart;
+    bool gameEnd = false;
     cocos2d::Size visibleSize;
-    void BackToStage(cocos2d::Ref* pSender);
+   // void BackToStage(cocos2d::Ref* pSender);
     int power=0;
     int shootvec = 0;//初始发射方向
-    int remainBlocks = 0;
+
     std::string trans(long long int value);
-    int block_order = 0;
-    int toughblock_order = 0;
-    int bonus_order = 0;
+    int block_order = 1;
+
+    void bonus_create(int type, cocos2d::Vec2);
+    void check_win();
+    int score = 0;
+    cocos2d::Label* Score;
+    cocos2d::Label* life;
+    cocos2d::TMXTiledMap* map;
+
+    std::vector<cocos2d::Sprite*> Bonus;
+    bool isSmall = false;
+    void isSmallChange();
+
+    void onButtonPressed(cocos2d::Ref* pSender);
+    bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
+    void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
+
+    bool isar = false;
+    int rank(int score);
+    bool isHaveSaveFile();
+    int getHighestHistorySorce();
 };
 #endif
