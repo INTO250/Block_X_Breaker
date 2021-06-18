@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.5" tiledversion="1.6.0" orientation="orthogonal" renderorder="right-down" width="20" height="40" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="1">
+ <editorsettings>
+  <export target="stage_5.tmx" format="tmx"/>
+ </editorsettings>
  <tileset firstgid="1" source="normal_block.tsx"/>
  <tileset firstgid="2" source="bonus1.tsx"/>
  <tileset firstgid="3" source="tough_block.tsx"/>
  <layer id="1" name="normalBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgxUwQjG19IyaNzjNYxzk6kgBw8E8cvAoGAWjYBSMglEwCogHAHlmAEg=
+   eJztkVsKACAIBPX+l+6nfqJNTUioHZDew2Ii5Ee0l7VX5Rvvd+sKn4K5dWY5d/3zuBSUTCO6E8m38kVAOTK+yPqWz+o76utN38n/ZzJ6chFCCHmfBugOAF0=
   </data>
  </layer>
  <layer id="2" name="bonusBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo4A8wERHfeTaNQqGPyA2bRBSh0+eXLlRMApGwSgYBaNgFGACAJOAABE=
+   eJxjYBgFo2BkACYC/OEKyPEnuWEzEGFKKF4HQzwzEcEeBaNgFIyCUTAKRgoAAL1oABc=
   </data>
  </layer>
  <layer id="3" name="toughBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgx0wk4BHwSigJaB2mhvs5o2CUTAKRsEoGAWjgPoAANb+AE8=
+   eJxjYBgFo2DgATMBcULyxIqTI8dMQA8+QIne4QIo9T+6fnqZhxx3+OKR1u4bBaNgFIyCUTAKhhsAAFRaAEY=
   </data>
  </layer>
 </map>

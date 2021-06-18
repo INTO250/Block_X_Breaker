@@ -6,17 +6,17 @@ extern float volumeSound;
 extern int BGM;
 USING_NS_CC;
 
-Scene* GameScene::createScene(int stage)
+Scene* GameScene::createScene(int stage,int oriscore)
 {
     GameScene* rua = new GameScene();
-    if (rua->initWithPhysics(stage))
+    if (rua->initWithPhysics(stage, oriscore))
     {
         rua->autorelease();
         return rua;
     }
     return NULL;
 }
-bool GameScene::initWithPhysics(int stage)
+bool GameScene::initWithPhysics(int stage, int oriscore)
 {
     if (!Scene::initWithPhysics())
     {
@@ -56,6 +56,7 @@ bool GameScene::initWithPhysics(int stage)
     pauseButtonMenu->setPosition(Vec2(648, 1404));
     this->addChild(pauseButtonMenu);
 
+    score = oriscore;
     Score = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
     Score->setColor(Color3B::WHITE); //设置颜色
     Score->setPosition(Vec2(100, 1274));
@@ -70,7 +71,10 @@ bool GameScene::initWithPhysics(int stage)
     //板
     board = Board::createBoard("board.png");
     board->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5));
-    board->life = 3;
+    if (stage!=0)
+        board->life = 1;//HAIMEIGAI
+    else
+        board->life = 1;
     this->addChild(board);
     auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 0.0f));
     boardBody->setCategoryBitmask(1);
@@ -128,11 +132,13 @@ bool GameScene::initWithPhysics(int stage)
     ballBody->setDynamic(false);
     ballBody->setTag(0);
     Balls[0]->setPhysicsBody(ballBody);
-
-
-
     
-
+    if (!stage)
+    {
+        isar = true;
+        auto rand = RandomHelper();
+        stage = rand.random_int(1, 2);
+    }
     blocks_create(stage);
 
     char stageBackgroundString[30];
@@ -140,11 +146,6 @@ bool GameScene::initWithPhysics(int stage)
     auto background = Sprite::create(stageBackgroundString);
     background->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(background, -10);
-
-   
-
-    
-    
 
     this->scheduleUpdate();
 
@@ -154,11 +155,7 @@ bool GameScene::initWithPhysics(int stage)
 void GameScene::blocks_create(int stage)
 {
     char stageString[20];
-    if (!stage)
-    {
-        auto rand = RandomHelper();
-        stage = rand.random_int(1, 1);
-    }
+    
     sprintf(stageString, "stage_%d.tmx", stage);
     //导入瓦片地图
     map = TMXTiledMap::create(stageString);
@@ -225,7 +222,8 @@ void GameScene::blocks_create(int stage)
                 Block rua;
                 rua.exsistence = true;
                 rua.life = 1;
-                rua.bonus = 1;
+                int k = 1 + rand() % 2 ;
+                rua.bonus = k;//1 变小 2 旋转
                 rua.sprite = bonuslayer->getTileAt(Vec2(i, j));
                 rua.position = Vec2(i, j);
                 auto bonusBody = PhysicsBody::createBox(bonuslayer->getTileAt(Vec2(i, j))->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
@@ -242,16 +240,6 @@ void GameScene::blocks_create(int stage)
         }
     }
 
-    
-            /*小球加倍
-            
-            */
-
-            /*缩放
-            ActionInterval * scaleto = ScaleTo ::create(2, 0.5);
-            board->runAction(scaleto);
-            break;
-            */ 
 }
 
 void GameScene::onEnter()
@@ -287,7 +275,9 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
         Blocks[bodyB->getTag() - 1].life -= 1;
         if (Blocks[bodyB->getTag() - 1].life <= 0)
         {
-            
+            auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+            float volumeBGM = AudioEngine::getVolume(BGM);
+            AudioEngine::stop(BGM);
             Blocks[bodyB->getTag() - 1].exsistence = false;
             if (Blocks[bodyB->getTag() - 1].bonus)
             {
@@ -301,6 +291,8 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
             }
             score++;
             Score->setString(GameScene::trans(score));
+            
+        
             check_win();
         }
     }
@@ -322,46 +314,23 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
                 
                 map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
             }
+            auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+            float volumeBGM = AudioEngine::getVolume(BGM);
+            AudioEngine::stop(BGM);
             score++;
             Score->setString(GameScene::trans(score));
+            
+            
             check_win();
         }
     }
-   /* else if (bodyB->getTag() == 0 && bodyA->getTag() < 0&& bodyA->getTag() !=-1000)
-    {
-        
-        bodyA->setGravityEnable(true);
-        bodyA->setVelocity(Vec2(0,100));
-        GameScene::transform();//用type判断
-    }
-    else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
-    {
-        
-        bodyB->setGravityEnable(true);
-        bodyB->setVelocity(Vec2(0, -100)); 
-    }
-    else if (bodyA->getTag() == 0 && bodyA->getTag() < 0 && bodyA->getTag() != -1000)
-    {
-        removeChild(bonusBlocks[bodyA->getTag() * (-1) - 1].sprite);
-        bonusBlocks[bodyA->getTag() * (-1) - 1].exsistence = false;
-        bodyA->removeFromWorld();
-        bonusBlocks[bodyA->getTag() * (-1) - 1].sprite->removeFromParent();
-        GameScene::transform();//用type判断
-    }
-    else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
-    {
-        removeChild(Blocks[bodyB->getTag() * (-1) - 1].sprite);
-        bonusBlocks[bodyB->getTag() * (-1) - 1].exsistence = false;
-        bodyB->removeFromWorld();
-        bonusBlocks[bodyB->getTag() * (-1) - 1].sprite->removeFromParent();
-        GameScene::transform();//用type判断
-    } */
+   
     return true;  //返回true，才干够继续监听其他碰撞
 }
 
 void GameScene::boardrotation()
 {
-    ActionInterval* actionTo = RotateTo::create(50, 180);
+    ActionInterval* actionTo = RotateTo::create(10, 180);
     board->runAction(Sequence::create(actionTo, NULL));
 }
 
@@ -380,25 +349,7 @@ void GameScene::transform()
     }
 }
 
-void GameScene::doubleball()
-{
-    for (int i = 0; i < 1; i++)
-    {
-       /* Balls.push_back(Ball::createBall("ball.png"));
-        Balls.back()->setPosition(Vec2(Balls[0]->getPositionX(), Balls[0]->getPositionY()+1000));
-        Balls.back()->existence = true;
 
-        this->addChild(Balls.back());
-
-        auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
-        ballBody->setCategoryBitmask(1);
-        ballBody->setCollisionBitmask(1);
-        ballBody->setContactTestBitmask(1);
-        ballBody->setRotationEnable(false);
-        ballBody->setGravityEnable(true);
-        ballBody->setTag(0);
-        Balls.back()->setPhysicsBody(ballBody); */    }
-}
 void GameScene::update(float dt)
 {
     getPhysicsWorld()->setSpeed(MIN(1.0f + 0.02 * score, 3.0f));
@@ -421,21 +372,18 @@ void GameScene::update(float dt)
                 board->setPositionX(board->getPosition().x + 20);
             }
         }
-        for (int i = 0; i < 3; i++)
-
+        for (int i = 0; i < 1; i++)
         {
             if (Balls[i]->existence)
             {
                 if (Balls[i]->getPosition().y < visibleSize.height / 5 - 50)
                 {
                     this->removeChild(Balls[i]);
-                    Balls[i]->existence = false;
-                   
-                    
+                    Balls[i]->existence = false;                                       
                 }
             }
         }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 1; i++)
         {
             if (Balls[i]->existence)
             {
@@ -475,10 +423,63 @@ void GameScene::update(float dt)
             }
             else
             {
-                Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
-                auto label_false = Label::createWithTTF("You Loser!", "fonts/Marker Felt.ttf", 148);
-                label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
-                this->addChild(label_false);
+                if (!isar)
+                {
+                    Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
+                    auto label_false = Label::createWithTTF("You Lose!", "fonts/Marker Felt.ttf", 148);
+                    label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+                    this->addChild(label_false);
+                }
+
+                Score = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 60); //初始文本，字体，字号
+                Score->setColor(Color3B::RED); //设置颜色
+                Score->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 - 150));
+                Score->setString("Score  " + GameScene::trans(score));
+                this->addChild(Score);
+
+                if (!isar)
+                {
+                    auto Rank = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 60); //初始文本，字体，字号
+                    Rank->setColor(Color3B::RED); //设置颜色
+                    Rank->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 - 95));
+                    int ranklist = rank(score);
+                    if (ranklist != 6)
+                        Rank->setString("Rank  " + GameScene::trans(ranklist));
+                    else
+                        Rank->setString("Your Rank Is Too Low To Be Shown" );
+                    this->addChild(Rank);
+
+                    auto Rank1 = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 30); //初始文本，字体，字号
+                    Rank1->setColor(Color3B::YELLOW); //设置颜色
+                    Rank1->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 + 180 + 100));
+                    Rank1->setString("Rank 1  " + GameScene::trans(UserDefault::getInstance()->getIntegerForKey("rank1")));
+                    this->addChild(Rank1);
+
+                    auto Rank2 = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 30); //初始文本，字体，字号
+                    Rank2->setColor(Color3B::YELLOW); //设置颜色
+                    Rank2->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 +150+100));
+                    Rank2->setString("Rank 2  " + GameScene::trans(UserDefault::getInstance()->getIntegerForKey("rank2")));
+                    this->addChild(Rank2);
+
+                    auto Rank3 = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 30); //初始文本，字体，字号
+                    Rank3->setColor(Color3B::YELLOW); //设置颜色
+                    Rank3->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 + 120 + 100));
+                    Rank3->setString("Rank 3  " + GameScene::trans(UserDefault::getInstance()->getIntegerForKey("rank3")));
+                    this->addChild(Rank3);
+
+                    auto Rank4 = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 30); //初始文本，字体，字号
+                    Rank4->setColor(Color3B::YELLOW); //设置颜色
+                    Rank4->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 + 90 + 100));
+                    Rank4->setString("Rank 4  " + GameScene::trans(UserDefault::getInstance()->getIntegerForKey("rank4")));
+                    this->addChild(Rank4);
+
+                    auto Rank5 = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 30); //初始文本，字体，字号
+                    Rank5->setColor(Color3B::YELLOW); //设置颜色
+                    Rank5->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 + 60 + 100));
+                    Rank5->setString("Rank 5  " + GameScene::trans(UserDefault::getInstance()->getIntegerForKey("rank5")));
+                    this->addChild(Rank5);
+
+                }
                 auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
                 auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
                 auto backbuttom = Menu::create(item_back, NULL);
@@ -500,6 +501,9 @@ void GameScene::update(float dt)
                 {
                     case 1:
                         transform();
+                        break;
+                    case 2:
+                        boardrotation();
                         break;
                 }
                 this->removeChild(Bonus[i]);
@@ -537,10 +541,7 @@ void GameScene::update(float dt)
                 powerArrow->setPositionY(powerArrow->getPosition().y + 3);
             }
         }
-    }
-    
-    
-   
+    }  
 
 }
 std::string GameScene::trans(long long int value)
@@ -590,21 +591,34 @@ void GameScene::check_win()
     }
     if (win)//胜利的标志
     {
+        if (isar)
+        {
+            Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(0, score)));
+        }
+        else
+        {
+            auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
+            label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+            this->addChild(label_success);
 
-        auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
-        label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
-        this->addChild(label_success);
-        auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
-        auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
-        auto backbuttom = Menu::create(item_back, NULL);
-        backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
-        this->addChild(backbuttom);
+            Score = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 60); //初始文本，字体，字号
+            Score->setColor(Color3B::RED); //设置颜色
+            Score->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 - 120));
+            Score->setString("Your Score  " + GameScene::trans(score));
+            this->addChild(Score);
+
+            auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
+            auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
+            auto backbuttom = Menu::create(item_back, NULL);
+            backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
+            this->addChild(backbuttom);
+        }
     }
 }
 void GameScene::bonus_create(int type, Vec2 position)
 {
     char bonusString[20];
-    sprintf(bonusString, "bonus_%d.png", type);
+    sprintf(bonusString, "bonus_1.png");
     auto bonus = Sprite::create(bonusString);
     bonus->setPosition(position);
     bonus->setTag(type);
@@ -667,3 +681,102 @@ void GameScene::onTouchEnded(Touch* touch, Event* event)
         }
     }
 }
+
+int GameScene::rank(int score)
+{
+    int rankscore[10] = {};
+    int ranklist = 0;
+    if (isHaveSaveFile())//如果存在存档
+    {       
+        rankscore[1] = UserDefault::getInstance()->getIntegerForKey("rank1");
+        rankscore[2] = UserDefault::getInstance()->getIntegerForKey("rank2");
+        rankscore[3] = UserDefault::getInstance()->getIntegerForKey("rank3");
+        rankscore[4] = UserDefault::getInstance()->getIntegerForKey("rank4");
+        rankscore[5] = UserDefault::getInstance()->getIntegerForKey("rank5");
+        if (score >= rankscore[1])
+        {
+            UserDefault::getInstance()->setIntegerForKey("rank1", score);
+            UserDefault::getInstance()->setIntegerForKey("rank2", rankscore[1]);
+            UserDefault::getInstance()->setIntegerForKey("rank3", rankscore[2]);
+            UserDefault::getInstance()->setIntegerForKey("rank4", rankscore[3]);
+            UserDefault::getInstance()->setIntegerForKey("rank5", rankscore[4]);
+            ranklist = 1;
+        }
+        else if (score >= rankscore[2])
+        {
+            UserDefault::getInstance()->setIntegerForKey("rank1", rankscore[1]);
+            UserDefault::getInstance()->setIntegerForKey("rank2", score);
+            UserDefault::getInstance()->setIntegerForKey("rank3", rankscore[2]);
+            UserDefault::getInstance()->setIntegerForKey("rank4", rankscore[3]);
+            UserDefault::getInstance()->setIntegerForKey("rank5", rankscore[4]);
+            ranklist = 2;
+        }
+        else if (score >= rankscore[3])
+        {
+            UserDefault::getInstance()->setIntegerForKey("rank1", rankscore[1]);
+            UserDefault::getInstance()->setIntegerForKey("rank2", rankscore[2]);
+            UserDefault::getInstance()->setIntegerForKey("rank3", score);
+            UserDefault::getInstance()->setIntegerForKey("rank4", rankscore[3]);
+            UserDefault::getInstance()->setIntegerForKey("rank5", rankscore[4]);
+            ranklist = 3;
+        }
+        else if (score >= rankscore[4])
+        {
+            UserDefault::getInstance()->setIntegerForKey("rank1", rankscore[1]);
+            UserDefault::getInstance()->setIntegerForKey("rank2", rankscore[2]);
+            UserDefault::getInstance()->setIntegerForKey("rank3", rankscore[3]);
+            UserDefault::getInstance()->setIntegerForKey("rank4", score);
+            UserDefault::getInstance()->setIntegerForKey("rank5", rankscore[4]);
+            ranklist = 4;
+        }
+        else if (score >= rankscore[5])
+        {
+            UserDefault::getInstance()->setIntegerForKey("rank1", rankscore[1]);
+            UserDefault::getInstance()->setIntegerForKey("rank2", rankscore[2]);
+            UserDefault::getInstance()->setIntegerForKey("rank3", rankscore[3]);
+            UserDefault::getInstance()->setIntegerForKey("rank4", rankscore[4]);
+            UserDefault::getInstance()->setIntegerForKey("rank5", score);
+            ranklist = 5;
+        }
+        else if (score < rankscore[5])
+        {
+            ranklist = 6;
+        }
+    }
+    return ranklist;
+}
+
+bool GameScene::isHaveSaveFile()//判断存档是否存在
+{
+    if (!UserDefault::getInstance()->getBoolForKey("isHaveSaveFileXml"))//通过设置的bool型标志位判断，如果不存在
+    {
+        UserDefault::getInstance()->setBoolForKey("isHaveSaveFileXml", true);//写入bool判断位
+        UserDefault::getInstance()->setIntegerForKey("rank1", 0);//写入初始分数0
+        UserDefault::getInstance()->setIntegerForKey("rank2", 0);//写入初始分数0
+        UserDefault::getInstance()->setIntegerForKey("rank3", 0);//写入初始分数0
+        UserDefault::getInstance()->setIntegerForKey("rank4", 0);//写入初始分数0
+        UserDefault::getInstance()->setIntegerForKey("rank5", 0);//写入初始分数0
+        UserDefault::getInstance()->flush();//设置完一定要调用flush，才能从缓冲写入io
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+int GameScene::getHighestHistorySorce()
+{
+    int highestHistoryScore=0;
+    if (isHaveSaveFile())//如果存在存档
+    {
+        highestHistoryScore = UserDefault::getInstance()->getIntegerForKey("HighestScore");//读取历史最高分
+        if (score > highestHistoryScore)
+        {
+            UserDefault::getInstance()->setIntegerForKey("HighestScore", score);//修改存档
+            highestHistoryScore = score;//最高分重新设定
+        }
+    }
+    return highestHistoryScore;
+}
+ 

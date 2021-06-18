@@ -1,6 +1,7 @@
 #pragma once
 #ifndef  _GAME_SCENE_H_
 #define  _GAME_SCENE_H_
+
 #include<iostream>
 #include<string>
 #include <vector>
@@ -13,8 +14,8 @@
 class GameScene : public cocos2d::Scene
 {
 public:
-    static cocos2d::Scene* createScene(int stage);
-    virtual bool initWithPhysics(int stage);
+    static cocos2d::Scene* createScene(int stage,int oriscore=0);
+    virtual bool initWithPhysics(int stage, int oriscore = 0);
     static cocos2d::PhysicsWorld* world;
     std::vector<Block> Blocks;
     Ball* Balls[3];
@@ -61,6 +62,9 @@ public:
     bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
     void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
 
-    
+    bool isar = false;
+    int rank(int score);
+    bool isHaveSaveFile();
+    int getHighestHistorySorce();
 };
 #endif

@@ -5,7 +5,7 @@
  <tileset firstgid="3" source="tough_block.tsx"/>
  <layer id="1" name="normalBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgxUwQjG19IyaNzjNYxzk6kgBw8E8cvAoGAWjYBSMglEwCogHAHlmAEg=
+   eJztlEEKACAIBO3/n+4UdMi1TTxIOyARtWMgZNabEexRbhXj83I3fZjcnmVAmd996B7yefNjfMjr3fV6dpvHAGeM77RW+F7q5MsSvSvKZv4eIYQQopIJz/UAbg==
   </data>
  </layer>
  <layer id="2" name="bonusBlock" width="20" height="40">
@@ -15,7 +15,7 @@
  </layer>
  <layer id="3" name="toughBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgx0wk4BHwSigJaB2mhvs5o2CUTAKRsEoGAWjgPoAANb+AE8=
+   eJxjYBgFgx0wU1kduh50PAqGHxgp8TqankfBKBgFo2AUjILBDwB25wAo
   </data>
  </layer>
 </map>
