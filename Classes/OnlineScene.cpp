@@ -2,6 +2,7 @@
 #include "StageSelectScene.h"
 #include "AudioEngine.h"
 #include <cmath>
+
 extern float volumeSound;
 extern int BGM;
 extern std::string IPAddr;
@@ -10,7 +11,13 @@ USING_NS_CC;
 
 Scene* OnlineScene::createScene()
 {
-    return OnlineScene::create();
+    OnlineScene* rua = new OnlineScene();
+    if (rua->initWithPhysics())
+    {
+        rua->autorelease();
+        return rua;
+    }
+    return NULL;
 }
 bool OnlineScene::initWithPhysics()
 {
@@ -23,12 +30,11 @@ bool OnlineScene::initWithPhysics()
 
     gameStart = false;
     srand((unsigned)time(NULL));
-
+     
     sockaddr_in serveraddr;
     serveraddr.sin_family = AF_INET;//对这个类进行初始化
     serveraddr.sin_port = htons(12345);
     serveraddr.sin_addr.s_addr = inet_addr(IPAddr.c_str());
-
     while (1)
     {
         char dataRecv[1024];
@@ -44,42 +50,20 @@ bool OnlineScene::initWithPhysics()
     getPhysicsWorld()->setGravity(gravity);
     this->getPhysicsWorld()->setAutoStep(true);
 
-    auto edge = PhysicsBody::createEdgeBox(Size(visibleSize.width, visibleSize.height - 216), PhysicsMaterial(10000.0f, 1.0f, 0.0f));
+   
+
+    auto edge = PhysicsBody::createEdgeBox(Size(visibleSize.width, 1280), PhysicsMaterial(10000.0f, 1.0f, 0.0f));
     edge->setTag(0);
     edge->setCategoryBitmask(1);
     edge->setCollisionBitmask(1);
     edge->setContactTestBitmask(0);
     auto edgeNode = Node::create();
-    edgeNode->setPosition(visibleSize.width / 2, 0);
+    edgeNode->setPosition(visibleSize.width / 2,  0);
     edgeNode->setPhysicsBody(edge);
     this->addChild(edgeNode);
-    /*
-    auto scoreBoard = Sprite::create("score_board.png");
-    scoreBoard->setAnchorPoint(Vec2(0, 1));
-    scoreBoard->setPosition(Vec2(0, 1404));
-    this->addChild(scoreBoard);
 
-    auto pauseButton = MenuItemImage::create("pause_button.png", "pause_button_selected.png", CC_CALLBACK_1(GameScene::onButtonPressed, this));
-    auto pauseButtonMenu = Menu::create(pauseButton, NULL);
-    pauseButton->setAnchorPoint(Vec2(1, 1));
-    pauseButtonMenu->setAnchorPoint(Vec2(1, 1));
-    pauseButtonMenu->setPosition(Vec2(648, 1404));
-    this->addChild(pauseButtonMenu);
-
-    Score = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
-    Score->setColor(Color3B::WHITE); //设置颜色
-    Score->setPosition(Vec2(100, 1274));
-    Score->setString(GameScene::trans(score));
-    this->addChild(Score);
-
-    auto scoreLabel = Label::createWithTTF("Score", "fonts/Marker Felt.ttf", 50);
-    scoreLabel->setColor(Color3B::WHITE);
-    scoreLabel->setPosition(Vec2(100, 1354));
-    this->addChild(scoreLabel);
-
-    //板
     board = Board::createBoard("board.png");
-    board->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5));
+    board->setPosition(Vec2(visibleSize.width / 2, 160));
     board->life = 3;
     this->addChild(board);
     auto boardBody = PhysicsBody::createBox(board->getContentSize(), PhysicsMaterial(10000.f, 1.0f, 0.0f));
@@ -92,38 +76,25 @@ bool OnlineScene::initWithPhysics()
     boardBody->setTag(0);
     board->setPhysicsBody(boardBody);
 
-    life = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 50); //初始文本，字体，字号
-    life->setColor(Color3B::WHITE); //设置颜色
-    life->setPosition(Vec2(350, 1274));
-    life->setString(GameScene::trans(board->life));
-    this->addChild(life);
-
-    auto lifeLabel = Label::createWithTTF("Life", "fonts/Marker Felt.ttf", 50);
-    lifeLabel->setColor(Color3B::WHITE);
-    lifeLabel->setPosition(Vec2(350, 1354));
-    this->addChild(lifeLabel);
-
-
     //蓄力槽
     powerpng = Arrow::createArrow("power.png");
-    powerpng->setPosition(Vec2(visibleSize.width / 3, visibleSize.height / 5 + 100));
+    powerpng->setPosition(Vec2(visibleSize.width / 3, 260));
     this->addChild(powerpng);
 
     //蓄力槽arrow
     powerArrow = Arrow::createArrow("power_arrow.png");
-    powerArrow->setPosition(Vec2(visibleSize.width / 3, visibleSize.height / 5));
+    powerArrow->setPosition(Vec2(visibleSize.width / 3, 160));
     this->addChild(powerArrow);
 
     //箭头指引发射方向
     arrow = Arrow::createArrow("arrow.png");
-    arrow->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5 + 100));
+    arrow->setPosition(Vec2(visibleSize.width / 2,260));
     this->addChild(arrow);
 
-    //球
     Balls[0] = Ball::createBall("ball.png");
     Balls[1] = Ball::createBall("ball.png");
     Balls[2] = Ball::createBall("ball.png");
-    Balls[0]->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5 + Balls[0]->getContentSize().height / 2 + board->getContentSize().height / 2));
+    Balls[0]->setPosition(Vec2(visibleSize.width / 2, Balls[0]->getContentSize().height / 2 + board->getContentSize().height / 2 + 160));
     Balls[0]->existence = true;
     Balls[1]->existence = false;
     Balls[2]->existence = false;
@@ -139,29 +110,54 @@ bool OnlineScene::initWithPhysics()
     ballBody->setTag(0);
     Balls[0]->setPhysicsBody(ballBody);
 
-
-
-
+    opponentBoard = Sprite::create("board.png");
+    opponentBoard->setPosition(Vec2(visibleSize.width / 2, 924));
+    this->addChild(opponentBoard);
+    opponentBall = Sprite::create("ball.png");
+    opponentBall->setPosition(Vec2(visibleSize.width / 2, 924 + opponentBoard->getContentSize().height / 2 + opponentBall->getContentSize().height / 2));
+    this->addChild(opponentBall);
 
     blocks_create(stage);
+
+    life = Label::createWithTTF("3", "fonts/Marker Felt.ttf", 48);
+    life->setString(trans(board->life));
+    life->setPosition(Vec2(100, 671));
+    this->addChild(life);
+
+    opponentLife = Label::createWithTTF("3", "fonts/Marker Felt.ttf", 48);
+    opponentLife->setPosition(Vec2(548, 733));
+    this->addChild(opponentLife);
+
+    auto heart = Sprite::create("heart.png");
+    heart->setPosition(Vec2(40, 671));
+    this->addChild(heart);
+
+    auto opponentHeart = Sprite::create("heart.png");
+    opponentHeart->setPosition(Vec2(608, 733));
+    this->addChild(opponentHeart);
+
+    skillsBar = ui::LoadingBar::create("skillsBar.png");
+    skillsBar->setPosition(Vec2(384, 671));
+    skillsBar->setPercent(0);
+    this->addChild(skillsBar);
+
+    opponentBar = ui::LoadingBar::create("skillsBar.png");
+    opponentBar->setPosition(Vec2(264, 733));
+    opponentBar->setPercent(0);
+    this->addChild(opponentBar);
+
 
     char stageBackgroundString[30];
     sprintf(stageBackgroundString, "stage_%d_background.png", stage);
     auto background = Sprite::create(stageBackgroundString);
     background->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(background, -10);
-
-
-
-
-
-
     this->scheduleUpdate();
-    */
+    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::dataRS, this), 0.0333f);
     return true;
 }
-/*
-void GameScene::blocks_create(int stage)
+
+void OnlineScene::blocks_create(int stage)
 {
     char stageString[20];
     if (!stage)
@@ -169,28 +165,33 @@ void GameScene::blocks_create(int stage)
         auto rand = RandomHelper();
         stage = rand.random_int(1, 1);
     }
-    sprintf(stageString, "stage_%d.tmx", stage);
+    sprintf(stageString, "stage_%d_online.tmx", stage);
     //导入瓦片地图
     map = TMXTiledMap::create(stageString);
     map->setAnchorPoint(Vec2(0.5, 0.5));
-    map->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+    map->setPosition(Vec2(visibleSize.width / 2, 320));
     addChild(map);
-
+    mapOpponent = TMXTiledMap::create(stageString);
+    mapOpponent->setAnchorPoint(Vec2(0.5, 1));
+    mapOpponent->setPosition(Vec2(visibleSize.width / 2, visibleSize.height));
+    addChild(mapOpponent);
     TMXLayer* blocklayer = map->getLayer("normalBlock");//获取需要添加PhysicsBody的瓦片所在的图层
     auto mapSize = map->getMapSize();
     for (float i = 0; i < mapSize.width; i++)
     {
         for (float j = 0; j < mapSize.height; j++)
         {
-
+            blockInfo += "*";
             if (blocklayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
             {
+                
                 Block rua;
                 rua.sprite = blocklayer->getTileAt(Vec2(i, j));
                 rua.exsistence = true;
                 rua.life = 1;
                 rua.bonus = 0;
                 rua.position = Vec2(i, j);
+                
                 auto blockBody = PhysicsBody::createBox(rua.sprite->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
                 blockBody->setDynamic(false);
                 blockBody->setCategoryBitmask(1);
@@ -205,53 +206,10 @@ void GameScene::blocks_create(int stage)
     }
 
     //获取需要打不动的砖块
-    TMXLayer* toughblocklayer = map->getLayer("toughBlock");
-    for (float i = 0; i < mapSize.width - 1; i++)
-    {
-        for (float j = 0; j < mapSize.height - 1; j++)
-        {
-            if (toughblocklayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
-            {
-
-                auto toughblockBody = PhysicsBody::createBox(toughblocklayer->getTileAt(Vec2(i, j))->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
-                toughblockBody->setDynamic(false);
-                toughblockBody->setCategoryBitmask(1);
-                toughblockBody->setCollisionBitmask(1);
-                toughblockBody->setContactTestBitmask(0);
-                toughblockBody->setTag(0);//忽视
-                toughblocklayer->getTileAt(Vec2(i, j))->setPhysicsBody(toughblockBody);//给瓦片添加上PhysicsBody组件
-            }
-        }
-    }
-
-    //获取bonus
-    TMXLayer* bonuslayer = map->getLayer("bonusBlock");
-    for (float i = 0; i < mapSize.width; i++)
-    {
-        for (float j = 0; j < mapSize.height; j++)
-        {
-            if (bonuslayer->getTileAt(Vec2(i, j)))//并不是所有位置都有瓦片，如果没有瓦片就是空
-            {
-                Block rua;
-                rua.exsistence = true;
-                rua.life = 1;
-                rua.bonus = 1;
-                rua.sprite = bonuslayer->getTileAt(Vec2(i, j));
-                rua.position = Vec2(i, j);
-                auto bonusBody = PhysicsBody::createBox(bonuslayer->getTileAt(Vec2(i, j))->getContentSize(), PhysicsMaterial(10000.0f, 1.0f, 0.0f));//设置PhysicsBody组件               
-                bonusBody->setDynamic(false);
-                bonusBody->setCategoryBitmask(1);
-                bonusBody->setCollisionBitmask(1);
-                bonusBody->setContactTestBitmask(1);
-                bonusBody->setTag(block_order);
-                bonusBody->setGravityEnable(false);
-                rua.sprite->setPhysicsBody(bonusBody);//给瓦片添加上PhysicsBody组件
-                block_order++;
-                Blocks.push_back(rua);
-            }
-        }
-    }
-
+    
+    
+    
+}
 
     /*小球加倍
 
@@ -263,22 +221,22 @@ void GameScene::blocks_create(int stage)
     break;
     
 }*/
-/*
-void GameScene::onEnter()
+
+void OnlineScene::onEnter()
 {
     Scene::onEnter();
     auto contactListener = EventListenerPhysicsContact::create();
-    contactListener->onContactBegin = CC_CALLBACK_1(GameScene::onContactBegin, this);  //开始碰撞监听
+    contactListener->onContactBegin = CC_CALLBACK_1(OnlineScene::onContactBegin, this);  //开始碰撞监听
 
 
     auto keyboardListener = EventListenerKeyboard::create();
-    keyboardListener->onKeyPressed = CC_CALLBACK_2(GameScene::onKeyPressed, this);
-    keyboardListener->onKeyReleased = CC_CALLBACK_2(GameScene::onKeyReleased, this);
+    keyboardListener->onKeyPressed = CC_CALLBACK_2(OnlineScene::onKeyPressed, this);
+    keyboardListener->onKeyReleased = CC_CALLBACK_2(OnlineScene::onKeyReleased, this);
 
     auto touchListener = EventListenerTouchOneByOne::create();
     touchListener->setSwallowTouches(true);
-    touchListener->onTouchBegan = CC_CALLBACK_2(GameScene::onTouchBegan, this);
-    touchListener->onTouchEnded = CC_CALLBACK_2(GameScene::onTouchEnded, this);
+    touchListener->onTouchBegan = CC_CALLBACK_2(OnlineScene::onTouchBegan, this);
+    touchListener->onTouchEnded = CC_CALLBACK_2(OnlineScene::onTouchEnded, this);
 
 
     auto dispatcher = Director::getInstance()->getEventDispatcher();
@@ -287,7 +245,7 @@ void GameScene::onEnter()
     dispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
 }
 
-bool GameScene::onContactBegin(const PhysicsContact& contact)
+bool OnlineScene::onContactBegin(const PhysicsContact& contact)
 {
     auto bodyA = contact.getShapeA()->getBody();
     auto bodyB = contact.getShapeB()->getBody();
@@ -299,18 +257,10 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
         {
 
             Blocks[bodyB->getTag() - 1].exsistence = false;
-            if (Blocks[bodyB->getTag() - 1].bonus)
-            {
-
-                bonus_create(Blocks[bodyB->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
-                map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
-            }
-            else
-            {
-                map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
-            }
+            map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
+            blockInfo[Blocks[bodyB->getTag() - 1].position.y * 20 + Blocks[bodyB->getTag() - 1].position.x] = '!';
+           
             score++;
-            Score->setString(GameScene::trans(score));
             check_win();
         }
     }
@@ -322,51 +272,17 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
         {
 
             Blocks[bodyA->getTag() - 1].exsistence = false;
-            if (Blocks[bodyA->getTag() - 1].bonus)
-            {
-                bonus_create(Blocks[bodyA->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyA->getTag() - 1].position)->getPosition());
-                map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
-            }
-            else
-            {
+            
 
-                map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
-            }
+            map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
+            blockInfo[Blocks[bodyA->getTag() - 1].position.y * 20 + Blocks[bodyA->getTag() - 1].position.x] = '!';
+            
             score++;
-            Score->setString(GameScene::trans(score));
+            
             check_win();
         }
     }
-    /* else if (bodyB->getTag() == 0 && bodyA->getTag() < 0&& bodyA->getTag() !=-1000)
-     {
-
-         bodyA->setGravityEnable(true);
-         bodyA->setVelocity(Vec2(0,100));
-         GameScene::transform();//用type判断
-     }
-     else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
-     {
-
-         bodyB->setGravityEnable(true);
-         bodyB->setVelocity(Vec2(0, -100));
-     }
-     else if (bodyA->getTag() == 0 && bodyA->getTag() < 0 && bodyA->getTag() != -1000)
-     {
-         removeChild(bonusBlocks[bodyA->getTag() * (-1) - 1].sprite);
-         bonusBlocks[bodyA->getTag() * (-1) - 1].exsistence = false;
-         bodyA->removeFromWorld();
-         bonusBlocks[bodyA->getTag() * (-1) - 1].sprite->removeFromParent();
-         GameScene::transform();//用type判断
-     }
-     else if (bodyA->getTag() == 0 && bodyB->getTag() < 0 && bodyB->getTag() != -1000)
-     {
-         removeChild(Blocks[bodyB->getTag() * (-1) - 1].sprite);
-         bonusBlocks[bodyB->getTag() * (-1) - 1].exsistence = false;
-         bodyB->removeFromWorld();
-         bonusBlocks[bodyB->getTag() * (-1) - 1].sprite->removeFromParent();
-         GameScene::transform();//用type判断
-     } 
-    return true;  //返回true，才干够继续监听其他碰撞
+    return true;
 }
 /*
 void GameScene::boardrotation()
@@ -374,8 +290,56 @@ void GameScene::boardrotation()
     ActionInterval* actionTo = RotateTo::create(50, 180);
     board->runAction(Sequence::create(actionTo, NULL));
 }
+*/
+void OnlineScene::dataRS(float dt)
+{
+    std::string dataSend = blockInfo + "# ";
+    dataSend += trans(board->getPositionX());
+    dataSend += " ";
+    dataSend += trans(Balls[0]->getPositionX());
+    dataSend += " ";
+    dataSend += trans(Balls[0]->getPositionY());
+    dataSend += " ";
+    dataSend += trans(board->life);
+    dataSend += " ";
+    send(client, dataSend.c_str(), dataSend.size(), 0);
 
-void GameScene::transform()
+
+    char dataRecv[1024];
+    int ret = recv(client, dataRecv, 1023, 0);
+    if (ret != -1 && dataRecv[0])
+    {
+        char blockRecv[402] = { 0 }, posX[10] = { 0 }, posY[10] = { 0 }, posBoard[10] = { 0 }, oppoLife[10] = { 0 };
+        int retu = sscanf(dataRecv, "%s%s%s%s%s", blockRecv, posBoard, posX, posY, oppoLife);
+
+        if (retu == 5 && blockRecv[400] == '#')
+        {
+            for (int i = 0; i < 400; i++)
+            {
+                if (blockRecv[i] == '!' && mapOpponent->getLayer("normalBlock")->getTileAt(Vec2(i % 20, i / 20)))
+                {
+                    mapOpponent->getLayer("normalBlock")->removeTileAt(Vec2(i % 20, i / 20));
+                }
+            }
+
+
+            opponentBoard->setPosition(Vec2(atoi(posBoard), 924));
+
+            opponentBall->setPosition(Vec2(atoi(posX), atoi(posY) + 764));
+
+            opponentLife->setString(trans(atoi(oppoLife)));
+        }
+        else if (blockRecv[0] == 'w')
+        {
+            gameLose();
+        }
+        else if (blockRecv[0] == 'l')
+        {
+            gameWin();
+        }
+    }
+}
+void OnlineScene::transform()
 {
     if (!isSmall)
     {
@@ -383,37 +347,59 @@ void GameScene::transform()
         ActionInterval* scaleto = ScaleTo::create(0.5f, 0.5f);
         auto delay = DelayTime::create(5.0f);
         ActionInterval* scaleback = ScaleTo::create(0.5f, 1.0f);
-        CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameScene::isSmallChange, this));
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(OnlineScene::isSmallChange, this));
         CallFunc* func2 = func->clone();
         auto sequence = Sequence::create(func, scaleto, delay, scaleback, func2, NULL);
         board->runAction(sequence);
     }
 }
-
-void GameScene::doubleball()
+void OnlineScene::gameLose()
 {
-    for (int i = 0; i < 1; i++)
-    {
-        /* Balls.push_back(Ball::createBall("ball.png"));
-         Balls.back()->setPosition(Vec2(Balls[0]->getPositionX(), Balls[0]->getPositionY()+1000));
-         Balls.back()->existence = true;
-
-         this->addChild(Balls.back());
-
-         auto ballBody = PhysicsBody::createCircle(Balls.back()->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 1.0f));
-         ballBody->setCategoryBitmask(1);
-         ballBody->setCollisionBitmask(1);
-         ballBody->setContactTestBitmask(1);
-         ballBody->setRotationEnable(false);
-         ballBody->setGravityEnable(true);
-         ballBody->setTag(0);
-         Balls.back()->setPhysicsBody(ballBody); 
-    }
+    
+        
+    
+    Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
+    
+    this->unscheduleAllCallbacks();
+    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::loseSend, this), 0.1f);
+    auto label_false = Label::createWithTTF("You Lose!", "fonts/Marker Felt.ttf", 148);
+    label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+    this->addChild(label_false);
+    auto label_back = Label::createWithTTF("Back To Map", "fonts/Marker Felt.ttf", 48);
+    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(OnlineScene::onButtonPressed, this));
+    auto backbuttom = Menu::create(item_back, NULL);
+    backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
+    this->addChild(backbuttom);
+    
 }
-void GameScene::update(float dt)
+void OnlineScene::gameWin()
+{
+    
+    
+    Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
+
+    this->unscheduleAllCallbacks();
+    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::winSend, this), 0.1f);
+    auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
+    label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+    this->addChild(label_success);
+    auto label_back = Label::createWithTTF("Back To Map", "fonts/Marker Felt.ttf", 48);
+    auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(OnlineScene::onButtonPressed, this));
+    auto backbuttom = Menu::create(item_back, NULL);
+    backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
+    this->addChild(backbuttom);
+}
+void OnlineScene::winSend(float dt)
+{
+    send(client, "win", sizeof("win"), 0);
+}
+void OnlineScene::loseSend(float dt)
+{
+    send(client, "lose", sizeof("lose"), 0);
+}
+void OnlineScene::update(float dt)
 {
     getPhysicsWorld()->setSpeed(MIN(1.0f + 0.02 * score, 3.0f));
-
     if (gameStart)
     {
         bool signal = true;
@@ -432,12 +418,12 @@ void GameScene::update(float dt)
                 board->setPositionX(board->getPosition().x + 20);
             }
         }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 1; i++)
 
         {
             if (Balls[i]->existence)
             {
-                if (Balls[i]->getPosition().y < visibleSize.height / 5 - 50)
+                if (Balls[i]->getPosition().y < board->getPositionY() - 50)
                 {
                     this->removeChild(Balls[i]);
                     Balls[i]->existence = false;
@@ -446,7 +432,7 @@ void GameScene::update(float dt)
                 }
             }
         }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 1; i++)
         {
             if (Balls[i]->existence)
             {
@@ -458,6 +444,7 @@ void GameScene::update(float dt)
         {
             board->life--;
             life->setString(trans(board->life));
+            
             if (board->life)
             {
                 Balls[0] = Ball::createBall("ball.png");
@@ -476,9 +463,9 @@ void GameScene::update(float dt)
                 powerpng = Arrow::createArrow("power.png");
                 powerArrow = Arrow::createArrow("power_arrow.png");
                 arrow = Arrow::createArrow("arrow.png");
-                powerpng->setPosition(Vec2(board->getPosition().x - 70, visibleSize.height / 5 + 100));
-                powerArrow->setPosition(Vec2(board->getPosition().x - 70, visibleSize.height / 5));
-                arrow->setPosition(Vec2(board->getPosition().x, visibleSize.height / 5 + 100));
+                powerpng->setPosition(Vec2(board->getPosition().x - 70, 260));
+                powerArrow->setPosition(Vec2(board->getPosition().x - 70, 160));
+                arrow->setPosition(Vec2(board->getPosition().x, 260));
                 this->addChild(powerpng);
                 this->addChild(arrow);
                 this->addChild(powerArrow);
@@ -486,15 +473,7 @@ void GameScene::update(float dt)
             }
             else
             {
-                Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
-                auto label_false = Label::createWithTTF("You Loser!", "fonts/Marker Felt.ttf", 148);
-                label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
-                this->addChild(label_false);
-                auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
-                auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
-                auto backbuttom = Menu::create(item_back, NULL);
-                backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
-                this->addChild(backbuttom);
+                gameLose();
 
                 gameStart = false;
                 gameEnd = true;
@@ -554,19 +533,19 @@ void GameScene::update(float dt)
 
 
 }
-std::string GameScene::trans(long long int value)
+std::string OnlineScene::trans(long long int value)
 {
     char buff[16];
     snprintf(buff, sizeof(buff), "%lld", value);
     return buff;
 }
 
-void GameScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event)
+void OnlineScene::onKeyPressed(EventKeyboard::KeyCode code, Event* event)
 {
     keys[code] = true;
 
 }
-void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
+void OnlineScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
 {
     keys[code] = false;
     switch (code)
@@ -588,7 +567,7 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode code, Event* event)
             }
     }
 }
-void GameScene::check_win()
+void OnlineScene::check_win()
 {
     bool win = 1;
     for (auto it = Blocks.begin(); it != Blocks.end(); it++)
@@ -602,17 +581,10 @@ void GameScene::check_win()
     if (win)//胜利的标志
     {
 
-        auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
-        label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
-        this->addChild(label_success);
-        auto label_back = Label::createWithTTF("Back To Your Map", "fonts/Marker Felt.ttf", 48);
-        auto item_back = MenuItemLabel::create(label_back, CC_CALLBACK_1(GameScene::onButtonPressed, this));
-        auto backbuttom = Menu::create(item_back, NULL);
-        backbuttom->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 3));
-        this->addChild(backbuttom);
+        gameWin();
     }
 }
-void GameScene::bonus_create(int type, Vec2 position)
+void OnlineScene::bonus_create(int type, Vec2 position)
 {
     char bonusString[20];
     sprintf(bonusString, "bonus_%d.png", type);
@@ -624,22 +596,23 @@ void GameScene::bonus_create(int type, Vec2 position)
     Bonus.push_back(bonus);
 
 }
-void GameScene::isSmallChange()
+void OnlineScene::isSmallChange()
 {
     if (isSmall)
         isSmall = false;
     else
         isSmall = true;
 }
-void GameScene::onButtonPressed(Ref* pSender)
+void OnlineScene::onButtonPressed(Ref* pSender)
 {
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
     BGM = AudioEngine::play2d("stage_select_BGM.mp3", true, volumeBGM);
-    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, StageSelect::createScene()));
+    WSACleanup();
+    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MenuScene::createScene()));
 }
-bool GameScene::onTouchBegan(Touch* touch, Event* event)
+bool OnlineScene::onTouchBegan(Touch* touch, Event* event)
 {
     if (touch->getLocation().y < 1000)
     {
@@ -654,7 +627,7 @@ bool GameScene::onTouchBegan(Touch* touch, Event* event)
     else
         return false;
 }
-void GameScene::onTouchEnded(Touch* touch, Event* event)
+void OnlineScene::onTouchEnded(Touch* touch, Event* event)
 {
     if (touch->getLocation().x < 216)
         touches["left"] = false;
@@ -678,4 +651,3 @@ void GameScene::onTouchEnded(Touch* touch, Event* event)
         }
     }
 }
-*/

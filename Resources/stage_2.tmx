@@ -10,7 +10,7 @@
  </layer>
  <layer id="2" name="bonusBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo4A8wERHfeTaNQqGPyA2bRBSh0+eXLlRMApGwSgYBaNgFGACAJOAABE=
+   eJztyrENAAAIA6DG/4/2go5OwkwC0M2zBwDcWmwgAA0=
   </data>
  </layer>
  <layer id="3" name="toughBlock" width="20" height="40">

@@ -9,6 +9,7 @@
 #include "Board.h"
 #include "Arrow.h"
 #include "Block.h"
+#include "ui/CocosGUI.h"
 #include <WINSOCK2.H>
 #pragma comment(lib,"ws2_32.lib")
 class OnlineScene : public cocos2d::Scene
@@ -23,6 +24,9 @@ public:
     Arrow* arrow;
     Arrow* powerArrow;
     Arrow* powerpng;
+    cocos2d::Sprite* opponentBoard;
+    cocos2d::Sprite* opponentBall;
+    std::string blockInfo = "";
 
     void blocks_create(int stage);
     void onEnter();
@@ -52,7 +56,11 @@ public:
     int score = 0;
     cocos2d::Label* Score;
     cocos2d::Label* life;
+    cocos2d::Label* opponentLife;
+    cocos2d::ui::LoadingBar* skillsBar;
+    cocos2d::ui::LoadingBar* opponentBar;
     cocos2d::TMXTiledMap* map;
+    cocos2d::TMXTiledMap* mapOpponent;
 
     std::vector<cocos2d::Sprite*> Bonus;
     bool isSmall = false;
@@ -62,8 +70,13 @@ public:
     bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
     void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
 
+    void gameWin();
+    void gameLose();
+    void winSend(float dt);
+    void loseSend(float dt);
+
     int stage = 0;
-
-
+    
+    void dataRS(float dt);
 };
 #endif
