@@ -8,6 +8,7 @@ USING_NS_CC;
 #define BG_HEIGHT 1404
 extern int BGM;
 extern float volumeSound;
+#define WINDOWS
 Scene* MenuScene::createScene()
 {
     return MenuScene::create();
@@ -74,7 +75,7 @@ void MenuScene::arcadeModeCallback(cocos2d::Ref* pSender)
 void MenuScene::storyModeCallback(cocos2d::Ref* pSender)
 {
     
-    auto sound = AudioEngine::play2d("sound_click                                                                                                   .mp3", false, volumeSound);
+    auto sound = AudioEngine::play2d("sound_click.mp3.mp3", false, volumeSound);
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
     BGM = AudioEngine::play2d("stage_select_BGM.mp3", true, volumeBGM);
@@ -83,10 +84,12 @@ void MenuScene::storyModeCallback(cocos2d::Ref* pSender)
 void MenuScene::multiplayerModeCallback(cocos2d:: Ref* pSender)
 {
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+#ifdef WINDOWS
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
     BGM = AudioEngine::play2d("matching_BGM.mp3", true, volumeBGM);
     Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MatchingScene::createScene()));
+#endif
 }
 void MenuScene::settingsCallback(cocos2d::Ref* pSender)
 {

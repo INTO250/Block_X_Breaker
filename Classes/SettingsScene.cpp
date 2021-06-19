@@ -5,7 +5,7 @@
 USING_NS_CC;
 extern int BGM;
 extern float volumeSound;
-std::string IPAddr = "100.66.206.163";
+std::string IPAddr = "192.168.224.76";
 #define BG_HEIGHT 1404
 cocos2d::Scene* SettingsScene::createScene()
 {
@@ -68,7 +68,8 @@ bool SettingsScene::init()
     IP->setColor(Color3B::WHITE);
     IP->setFontSize(48);
     IP->setFontName("fonts/Marker Felt.ttf");
-    IP->setPlaceHolder(IPAddr);
+    IP->setString(IPAddr);
+    
     IP->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 - 450));
     this->addChild(IP);
 

@@ -31,9 +31,9 @@ public:
    
     void onKeyPressed(cocos2d::EventKeyboard::KeyCode code, cocos2d::Event* event);
     void onKeyReleased(cocos2d::EventKeyboard::KeyCode code, cocos2d::Event* event);
-    void boardrotation();
-    void doubleball();
+    void rotation();
     void transform();
+    void speedUp();
     std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
     std::map<std::string, bool> touches;
  
@@ -56,7 +56,13 @@ public:
 
     std::vector<cocos2d::Sprite*> Bonus;
     bool isSmall = false;
+    bool isRotating = false;
+    bool isBoost = false;
     void isSmallChange();
+    void isRotatingChange();
+    void isBoostChange();
+
+    float speed = 1.0f;
 
     void onButtonPressed(cocos2d::Ref* pSender);
     bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);

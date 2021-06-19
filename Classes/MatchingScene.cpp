@@ -84,6 +84,7 @@ void MatchingScene::update(float dt)
     char dataRecv[1024];
     recv(client, dataRecv, 1023, 0);
     std::string str = dataRecv;
+    
     if (str == "quit")
     {
         matchLabel->setString("Your opponent has left.");
@@ -100,6 +101,7 @@ void MatchingScene::update(float dt)
     else if (str == "start")
     {
         auto sound = AudioEngine::play2d("sound_matched.mp3", false, volumeSound);
+       
         Director::getInstance()->replaceScene(TransitionFade::create(2.0f, OnlineScene::createScene()));
     }
     background_1->setPositionY(background_1->getPositionY() - 1);
@@ -122,7 +124,7 @@ void MatchingScene::gameStart(cocos2d::Ref* pSender, cocos2d::ui::Button::TouchE
             auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
             send(client, "ready", sizeof("ready"), 0);
             startButton->setEnabled(false);
-            matchLabel->setString("Waiting for your oppnent...");
+            matchLabel->setString("Waiting for your opponent...");
             break;
            
     }

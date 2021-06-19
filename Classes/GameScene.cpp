@@ -115,12 +115,8 @@ bool GameScene::initWithPhysics(int stage, int oriscore)
 
     //球
     Balls[0] = Ball::createBall("ball.png");
-    Balls[1] = Ball::createBall("ball.png");
-    Balls[2] = Ball::createBall("ball.png");
     Balls[0]->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 5 + Balls[0]->getContentSize().height / 2 + board->getContentSize().height / 2));
     Balls[0]->existence = true;
-    Balls[1]->existence = false;
-    Balls[2]->existence = false;
     this->addChild(Balls[0]);
 
     auto ballBody = PhysicsBody::createCircle(Balls[0]->getContentSize().width / 2, PhysicsMaterial(1.0f, 1.0f, 0.0f));
@@ -222,7 +218,7 @@ void GameScene::blocks_create(int stage)
                 Block rua;
                 rua.exsistence = true;
                 rua.life = 1;
-                int k = 1 + rand() % 2 ;
+                int k = 1 + rand() % 3 ;
                 rua.bonus = k;//1 变小 2 旋转
                 rua.sprite = bonuslayer->getTileAt(Vec2(i, j));
                 rua.position = Vec2(i, j);
@@ -275,20 +271,25 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
         Blocks[bodyB->getTag() - 1].life -= 1;
         if (Blocks[bodyB->getTag() - 1].life <= 0)
         {
-            auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+            auto sound = AudioEngine::play2d("sound_crash.mp3", false, volumeSound);
             float volumeBGM = AudioEngine::getVolume(BGM);
-            AudioEngine::stop(BGM);
             Blocks[bodyB->getTag() - 1].exsistence = false;
+            auto effect = ParticleFire::create();
+            effect->setDuration(0.5);
+            
+            
             if (Blocks[bodyB->getTag() - 1].bonus)
             {
-                
+                effect->setPosition(map->getLayer("bonusBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
                 bonus_create(Blocks[bodyB->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
                 map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
             }
             else
             {
+                effect->setPosition(map->getLayer("normalBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
                 map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
             }
+            this->addChild(effect);
             score++;
             Score->setString(GameScene::trans(score));
             
@@ -304,21 +305,27 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
         {
            
             Blocks[bodyA->getTag() - 1].exsistence = false;
+            auto effect = ParticleFire::create();
+            effect->setDuration(0.5);
+            
+            
             if (Blocks[bodyA->getTag() - 1].bonus)
             {
+                effect->setPosition(map->getLayer("bonusBlock")->getTileAt(Blocks[bodyA->getTag() - 1].position)->getPosition());
                 bonus_create(Blocks[bodyA->getTag() - 1].bonus, map->getLayer("bonusBlock")->getTileAt(Blocks[bodyA->getTag() - 1].position)->getPosition());
                 map->getLayer("bonusBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
             }
             else
             {
-                
+                effect->setPosition(map->getLayer("normalBlock")->getTileAt(Blocks[bodyA->getTag() - 1].position)->getPosition());
                 map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
             }
-            auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
+            this->addChild(effect);
+            auto sound = AudioEngine::play2d("sound_crash.mp3", false, volumeSound);
             float volumeBGM = AudioEngine::getVolume(BGM);
-            AudioEngine::stop(BGM);
             score++;
             Score->setString(GameScene::trans(score));
+           
             
             
             check_win();
@@ -328,10 +335,36 @@ bool GameScene::onContactBegin(const PhysicsContact& contact)
     return true;  //返回true，才干够继续监听其他碰撞
 }
 
-void GameScene::boardrotation()
+void GameScene::speedUp()
 {
-    ActionInterval* actionTo = RotateTo::create(10, 180);
-    board->runAction(Sequence::create(actionTo, NULL));
+    if (!isBoost)
+    {
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_3.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 320));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        auto delay = DelayTime::create(5.0f);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameScene::isBoostChange, this));
+        CallFunc* func2 = func->clone();
+        board->runAction(Sequence::create(func, delay, func2, NULL));
+    }
+}
+void GameScene::isBoostChange()
+{
+    if (isBoost)
+    {
+        isBoost = false;
+        speed = 1.0f;
+    }
+    else
+    {
+        isBoost = true;
+        speed = 0.1f;
+    }
 }
 
 void GameScene::transform()
@@ -339,6 +372,14 @@ void GameScene::transform()
     if (!isSmall)
     {
         
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_1.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 320));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
         ActionInterval* scaleto = ScaleTo::create(0.5f, 0.5f);
         auto delay = DelayTime::create(5.0f);
         ActionInterval* scaleback = ScaleTo::create(0.5f, 1.0f);
@@ -348,11 +389,35 @@ void GameScene::transform()
         board->runAction(sequence);
     }
 }
-
+void GameScene::rotation()
+{
+    if (!isRotating)
+    {
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_2.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 320));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        ActionInterval* actionTo = RotateBy::create(5, 180);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(GameScene::isRotatingChange, this));
+        CallFunc* func2 = func->clone();
+        board->runAction(Sequence::create(func, actionTo, func2, NULL));
+    }
+}
+void GameScene::isRotatingChange()
+{
+    if (isRotating)
+        isRotating = false;
+    else
+        isRotating = true;
+}
 
 void GameScene::update(float dt)
 {
-    getPhysicsWorld()->setSpeed(MIN(1.0f + 0.02 * score, 3.0f));
+    getPhysicsWorld()->setSpeed(speed * MIN(1.0f + 0.02 * score, 3.0f));
     
     if (gameStart)
     { 
@@ -443,7 +508,7 @@ void GameScene::update(float dt)
                     Rank->setColor(Color3B::RED); //设置颜色
                     Rank->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2 - 95));
                     int ranklist = rank(score);
-                    if (ranklist != 6)
+                    if (ranklist < 6)
                         Rank->setString("Rank  " + GameScene::trans(ranklist));
                     else
                         Rank->setString("Your Rank Is Too Low To Be Shown" );
@@ -503,7 +568,10 @@ void GameScene::update(float dt)
                         transform();
                         break;
                     case 2:
-                        boardrotation();
+                        rotation();
+                        break;
+                    case 3:
+                        speedUp();
                         break;
                 }
                 this->removeChild(Bonus[i]);
@@ -618,7 +686,7 @@ void GameScene::check_win()
 void GameScene::bonus_create(int type, Vec2 position)
 {
     char bonusString[20];
-    sprintf(bonusString, "bonus_1.png");
+    sprintf(bonusString, "bonus_%d.png", type);
     auto bonus = Sprite::create(bonusString);
     bonus->setPosition(position);
     bonus->setTag(type);
@@ -684,16 +752,37 @@ void GameScene::onTouchEnded(Touch* touch, Event* event)
 
 int GameScene::rank(int score)
 {
-    int rankscore[10] = {};
+    int rankscore[100] = {};
     int ranklist = 0;
     if (isHaveSaveFile())//如果存在存档
-    {       
-        rankscore[1] = UserDefault::getInstance()->getIntegerForKey("rank1");
+    { 
+        char temp[50] = {};
+        for (int i=1; i <= 50; i++)
+        {
+            snprintf(temp, sizeof(temp) / sizeof(char), "rank%d", i);
+            rankscore[i]=UserDefault::getInstance()->getIntegerForKey(temp);
+        }
+        /*rankscore[1] = UserDefault::getInstance()->getIntegerForKey("rank1");
         rankscore[2] = UserDefault::getInstance()->getIntegerForKey("rank2");
         rankscore[3] = UserDefault::getInstance()->getIntegerForKey("rank3");
         rankscore[4] = UserDefault::getInstance()->getIntegerForKey("rank4");
-        rankscore[5] = UserDefault::getInstance()->getIntegerForKey("rank5");
-        if (score >= rankscore[1])
+        rankscore[5] = UserDefault::getInstance()->getIntegerForKey("rank5");*/
+        for (int i=1; i <= 50; i++)
+        {
+            if (( rankscore[i]>score || score==rankscore[i]) && (score > rankscore[i + 1]|| score == rankscore[i + 1]))
+            {
+                snprintf(temp, sizeof(temp) / sizeof(char), "rank%d", i);
+                UserDefault::getInstance()->setIntegerForKey(temp, score);
+                ranklist = i;
+                for (int j = i + 1; j <= 50; j++)
+                {
+                    snprintf(temp, sizeof(temp) / sizeof(char), "rank%d", j);
+                    UserDefault::getInstance()->setIntegerForKey(temp, rankscore[j-1]);
+                }
+                return ranklist;
+            }
+        }
+        /*if (score >= rankscore[1])
         {
             UserDefault::getInstance()->setIntegerForKey("rank1", score);
             UserDefault::getInstance()->setIntegerForKey("rank2", rankscore[1]);
@@ -741,7 +830,12 @@ int GameScene::rank(int score)
         else if (score < rankscore[5])
         {
             ranklist = 6;
-        }
+        }*/
+    }
+    else if (!isHaveSaveFile())
+    {
+        UserDefault::getInstance()->setIntegerForKey("rank1", score);
+        ranklist = 1;
     }
     return ranklist;
 }
@@ -751,11 +845,12 @@ bool GameScene::isHaveSaveFile()//判断存档是否存在
     if (!UserDefault::getInstance()->getBoolForKey("isHaveSaveFileXml"))//通过设置的bool型标志位判断，如果不存在
     {
         UserDefault::getInstance()->setBoolForKey("isHaveSaveFileXml", true);//写入bool判断位
-        UserDefault::getInstance()->setIntegerForKey("rank1", 0);//写入初始分数0
-        UserDefault::getInstance()->setIntegerForKey("rank2", 0);//写入初始分数0
-        UserDefault::getInstance()->setIntegerForKey("rank3", 0);//写入初始分数0
-        UserDefault::getInstance()->setIntegerForKey("rank4", 0);//写入初始分数0
-        UserDefault::getInstance()->setIntegerForKey("rank5", 0);//写入初始分数0
+        char temp[50] = {};
+        for (int i=1; i <= 100; i++)
+        {
+            snprintf(temp, sizeof(temp) / sizeof(char), "rank%d", i);
+            UserDefault::getInstance()->setIntegerForKey(temp, 0);//写入初始分数0
+        }
         UserDefault::getInstance()->flush();//设置完一定要调用flush，才能从缓冲写入io
         return false;
     }

@@ -35,6 +35,11 @@ bool OnlineScene::initWithPhysics()
     serveraddr.sin_family = AF_INET;//对这个类进行初始化
     serveraddr.sin_port = htons(12345);
     serveraddr.sin_addr.s_addr = inet_addr(IPAddr.c_str());
+
+    float volumeBGM = AudioEngine::getVolume(BGM);
+    AudioEngine::stop(BGM);
+    BGM = AudioEngine::play2d("battle.mp3", true, volumeBGM);
+
     while (1)
     {
         char dataRecv[1024];
@@ -110,6 +115,10 @@ bool OnlineScene::initWithPhysics()
     ballBody->setTag(0);
     Balls[0]->setPhysicsBody(ballBody);
 
+    auto scoreBoard = Sprite::create("score_board_online.png");
+    scoreBoard->setPosition(Vec2(324, 702));
+    this->addChild(scoreBoard);
+
     opponentBoard = Sprite::create("board.png");
     opponentBoard->setPosition(Vec2(visibleSize.width / 2, 924));
     this->addChild(opponentBoard);
@@ -145,6 +154,8 @@ bool OnlineScene::initWithPhysics()
     opponentBar->setPosition(Vec2(264, 733));
     opponentBar->setPercent(0);
     this->addChild(opponentBar);
+
+    
 
 
     char stageBackgroundString[30];
@@ -205,22 +216,16 @@ void OnlineScene::blocks_create(int stage)
         }
     }
 
-    //获取需要打不动的砖块
+
     
     
     
 }
 
-    /*小球加倍
 
-    */
-
-    /*缩放
-    ActionInterval * scaleto = ScaleTo ::create(2, 0.5);
-    board->runAction(scaleto);
-    break;
     
-}*/
+    
+
 
 void OnlineScene::onEnter()
 {
@@ -255,11 +260,15 @@ bool OnlineScene::onContactBegin(const PhysicsContact& contact)
         Blocks[bodyB->getTag() - 1].life -= 1;
         if (Blocks[bodyB->getTag() - 1].life <= 0)
         {
-
+            auto sound = AudioEngine::play2d("sound_crash.mp3", false, volumeSound);
             Blocks[bodyB->getTag() - 1].exsistence = false;
-            map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
+            
             blockInfo[Blocks[bodyB->getTag() - 1].position.y * 20 + Blocks[bodyB->getTag() - 1].position.x] = '!';
-           
+            auto effect = ParticleFire::create();
+            effect->setDuration(0.5);
+            effect->setPosition(map->getLayer("normalBlock")->getTileAt(Blocks[bodyB->getTag() - 1].position)->getPosition());
+            this->addChild(effect);
+            map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
             score++;
             check_win();
         }
@@ -270,10 +279,12 @@ bool OnlineScene::onContactBegin(const PhysicsContact& contact)
         Blocks[bodyA->getTag() - 1].life -= 1;
         if (Blocks[bodyA->getTag() - 1].life <= 0)
         {
-
+            auto sound = AudioEngine::play2d("sound_crash.mp3", false, volumeSound);
             Blocks[bodyA->getTag() - 1].exsistence = false;
-            
-
+            auto effect = ParticleFire::create();
+            effect->setDuration(0.5);
+            effect->setPosition(map->getLayer("normalBlock")->getTileAt(Blocks[bodyA->getTag() - 1].position)->getPosition());
+            this->addChild(effect);
             map->getLayer("normalBlock")->removeTileAt(Blocks[bodyA->getTag() - 1].position);
             blockInfo[Blocks[bodyA->getTag() - 1].position.y * 20 + Blocks[bodyA->getTag() - 1].position.x] = '!';
             
@@ -282,15 +293,24 @@ bool OnlineScene::onContactBegin(const PhysicsContact& contact)
             check_win();
         }
     }
+    skillsBar->setPercent((score % 10) * 10);
+    if (score && score % 10 == 0)
+    {
+        switch (1 + rand() % 3)
+        {
+            case 1:
+                oppoTransform();
+                break;
+            case 2:
+                oppoRotation();
+                break;
+            case 3:
+                oppoSpeedUp();
+                break;   
+        }
+    }
     return true;
 }
-/*
-void GameScene::boardrotation()
-{
-    ActionInterval* actionTo = RotateTo::create(50, 180);
-    board->runAction(Sequence::create(actionTo, NULL));
-}
-*/
 void OnlineScene::dataRS(float dt)
 {
     std::string dataSend = blockInfo + "# ";
@@ -302,6 +322,14 @@ void OnlineScene::dataRS(float dt)
     dataSend += " ";
     dataSend += trans(board->life);
     dataSend += " ";
+    dataSend += trans(skillsBar->getPercent());
+    dataSend += " ";
+    dataSend += trans(oppoSmall);
+    dataSend += " ";
+    dataSend += trans(oppoRotating);
+    dataSend += " ";
+    dataSend += trans(oppoBoost);
+    dataSend += " ";
     send(client, dataSend.c_str(), dataSend.size(), 0);
 
 
@@ -310,15 +338,21 @@ void OnlineScene::dataRS(float dt)
     if (ret != -1 && dataRecv[0])
     {
         char blockRecv[402] = { 0 }, posX[10] = { 0 }, posY[10] = { 0 }, posBoard[10] = { 0 }, oppoLife[10] = { 0 };
-        int retu = sscanf(dataRecv, "%s%s%s%s%s", blockRecv, posBoard, posX, posY, oppoLife);
+        int oppoBar, smal, rota, boost;
+        int retu = sscanf(dataRecv, "%s%s%s%s%s%d%d%d%d", blockRecv, posBoard, posX, posY, oppoLife, &oppoBar, &smal, &rota, &boost);
 
-        if (retu == 5 && blockRecv[400] == '#')
+        if (retu == 9 && blockRecv[400] == '#')
         {
             for (int i = 0; i < 400; i++)
             {
                 if (blockRecv[i] == '!' && mapOpponent->getLayer("normalBlock")->getTileAt(Vec2(i % 20, i / 20)))
                 {
+                    auto effect = ParticleFire::create();
+                    effect->setDuration(0.5);
+                    effect->setPosition(Vec2(mapOpponent->getLayer("normalBlock")->getTileAt(Vec2(i % 20, i / 20))->getPosition().x, mapOpponent->getLayer("normalBlock")->getTileAt(Vec2(i % 20, i / 20))->getPosition().y + 764));
+                    this->addChild(effect);
                     mapOpponent->getLayer("normalBlock")->removeTileAt(Vec2(i % 20, i / 20));
+                    auto sound = AudioEngine::play2d("sound_crash.mp3", false, volumeSound);
                 }
             }
 
@@ -328,6 +362,26 @@ void OnlineScene::dataRS(float dt)
             opponentBall->setPosition(Vec2(atoi(posX), atoi(posY) + 764));
 
             opponentLife->setString(trans(atoi(oppoLife)));
+
+            opponentBar->setPercent(oppoBar);
+
+            if (smal)
+            {
+                transform();
+
+            }
+
+            if (rota)
+            {
+                rotation();
+            }
+
+            if (boost)
+            {
+                speedUp();
+            }
+            
+            
         }
         else if (blockRecv[0] == 'w')
         {
@@ -339,11 +393,79 @@ void OnlineScene::dataRS(float dt)
         }
     }
 }
+void OnlineScene::speedUp()
+{
+    if (!isBoost)
+    {
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_3.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 320));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        auto delay = DelayTime::create(5.0f);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(OnlineScene::isBoostChange, this));
+        CallFunc* func2 = func->clone();
+        board->runAction(Sequence::create(func,  delay, func2,  NULL));
+    }
+}
+void OnlineScene::isBoostChange()
+{
+    if (isBoost)
+    {
+        isBoost = false;
+        speed = 1.0f;
+    }
+    else
+    {
+        isBoost = true;
+        speed = 0.1f;
+    }
+}
+void OnlineScene::oppoSpeedUp()
+{
+    if (!oppoBoost)
+    {
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_3.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 1084));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        auto delay = DelayTime::create(5.0f);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(OnlineScene::oppoBoostChange, this));
+        CallFunc* func2 = func->clone();
+        opponentBoard->runAction(Sequence::create(func, delay, func2, NULL));
+    }
+}
+void OnlineScene::oppoBoostChange()
+{
+    if (oppoBoost)
+    {
+        oppoBoost = 0;
+      
+    }
+    else
+    {
+        oppoBoost = 1;
+    }
+}
 void OnlineScene::transform()
 {
     if (!isSmall)
     {
-
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_1.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 320));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
         ActionInterval* scaleto = ScaleTo::create(0.5f, 0.5f);
         auto delay = DelayTime::create(5.0f);
         ActionInterval* scaleback = ScaleTo::create(0.5f, 1.0f);
@@ -352,6 +474,85 @@ void OnlineScene::transform()
         auto sequence = Sequence::create(func, scaleto, delay, scaleback, func2, NULL);
         board->runAction(sequence);
     }
+}
+void OnlineScene::rotation()
+{
+    if (!isRotating)
+    {
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_2.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 320));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        ActionInterval* actionTo = RotateBy::create(5, 180);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(OnlineScene::isRotatingChange, this));
+        CallFunc* func2 = func->clone();
+        board->runAction(Sequence::create(func, actionTo, func2, NULL));
+    }
+}
+void OnlineScene::isRotatingChange()
+{
+    if (isRotating)
+        isRotating = false;
+    else
+        isRotating = true;
+}
+void OnlineScene::oppoTransform()
+{
+    if (!oppoSmall)
+    {
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_1.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 1084));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        ActionInterval* scaleto = ScaleTo::create(0.5f, 0.5f);
+        auto delay = DelayTime::create(5.0f);
+        ActionInterval* scaleback = ScaleTo::create(0.5f, 1.0f);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(OnlineScene::oppoSmallChange, this));
+        CallFunc* func2 = func->clone();
+        auto sequence = Sequence::create(func, scaleto, delay, scaleback, func2, NULL);
+        opponentBoard->runAction(sequence);
+    }
+}
+void OnlineScene::oppoRotatingChange()
+{
+    if (oppoRotating)
+        oppoRotating = 0;
+    else
+        oppoRotating = 1;
+}
+void OnlineScene::oppoRotation()
+{
+    if (!oppoRotating)
+    {
+        
+        auto sound = AudioEngine::play2d("sound_bonus.mp3", false, volumeSound);
+        auto sign = Sprite::create("bonus_sign_2.png");
+        auto fadeIn = FadeIn::create(0.5f);
+        auto fadeOut = FadeOut::create(0.5f);
+        auto de = DelayTime::create(0.5f);
+        sign->setPosition(Vec2(324, 1084));
+        sign->runAction(Sequence::create(fadeIn, de, fadeOut, NULL));
+        this->addChild(sign);
+        ActionInterval* actionTo = RotateBy::create(5, 180);
+        CallFunc* func = CallFunc::create(CC_CALLBACK_0(OnlineScene::oppoRotatingChange, this));
+        CallFunc* func2 = func->clone();
+        opponentBoard->runAction(Sequence::create(func, actionTo, func2, NULL));
+    }
+}
+void OnlineScene::oppoSmallChange()
+{
+    if (oppoSmall)
+        oppoSmall = 0;
+    else
+        oppoSmall = 1;
 }
 void OnlineScene::gameLose()
 {
@@ -380,7 +581,7 @@ void OnlineScene::gameWin()
 
     this->unscheduleAllCallbacks();
     this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::winSend, this), 0.1f);
-    auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 148);
+    auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 48);
     label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(label_success);
     auto label_back = Label::createWithTTF("Back To Map", "fonts/Marker Felt.ttf", 48);
@@ -399,7 +600,7 @@ void OnlineScene::loseSend(float dt)
 }
 void OnlineScene::update(float dt)
 {
-    getPhysicsWorld()->setSpeed(MIN(1.0f + 0.02 * score, 3.0f));
+    getPhysicsWorld()->setSpeed(speed * MIN(1.0f + 0.02 * score, 3.0f));
     if (gameStart)
     {
         bool signal = true;
@@ -608,7 +809,7 @@ void OnlineScene::onButtonPressed(Ref* pSender)
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
-    BGM = AudioEngine::play2d("stage_select_BGM.mp3", true, volumeBGM);
+    BGM = AudioEngine::play2d("MainMenu.mp3", true, volumeBGM);
     WSACleanup();
     Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MenuScene::createScene()));
 }
