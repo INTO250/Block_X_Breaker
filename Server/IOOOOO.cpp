@@ -57,6 +57,7 @@ void IOmode::selectmode()//选择模型
 			cout << inet_ntoa(addr.sin_addr) << "已加入连接" << "   当前连接数: " << clientset.size() << endl;
 			if (clientset.size() == 2)
 			{
+				Sleep(300);
 				send(clientset[0], "matched", sizeof("matched"), 0);
 				send(clientset[1], "matched", sizeof("matched"), 0);
 			}
