@@ -1,4 +1,9 @@
 # Block_X_Breaker
+## 运行方式
+### PC
+在Windows上运行Block_X_Breaker.exe
+### Android
+在Android设备上安装Block_X_Breaker.apk后，直接运行。
 ## 操作方式
 ### PC
 方向键左右控制挡板移动与发射方向。长按空格蓄力，松开即可发射。
