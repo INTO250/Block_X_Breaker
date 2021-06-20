@@ -3,8 +3,21 @@
 #define  _MATCHING_SCENE_H_
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
+#ifdef WIN32
 #include <WINSOCK2.H>
 #pragma comment(lib,"ws2_32.lib")
+typedef int				socklen_t;
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+typedef int				SOCKET;
+#endif
 class MatchingScene : public cocos2d::Scene
 {
 public:

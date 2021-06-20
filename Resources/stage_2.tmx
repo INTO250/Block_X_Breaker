@@ -5,17 +5,17 @@
  <tileset firstgid="3" source="tough_block.tsx"/>
  <layer id="1" name="normalBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgxUwQjG19IyaNzjNYxzk6kgBw8E8cvAoGAWjYBSMglEwCogHAHlmAEg=
+   eJxjYBgFtACMBDA9zSOkl1iMzzxy3I8uh84mxjxsemjlPmqZNwpGwSgYBaNgFIyCUTCSAQDobgBJ
   </data>
  </layer>
  <layer id="2" name="bonusBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJztyrENAAAIA6DG/4/2go5OwkwC0M2zBwDcWmwgAA0=
+   eJztzKENAAAIA0HC/kOzAK4IxF3ysq0i1UvJ5voPAAC+GMJfACk=
   </data>
  </layer>
  <layer id="3" name="toughBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgx0wk4BHwSigJaB2mhvs5o2CUTAKRsEoGAWjgPoAANb+AE8=
+   eJzty7ENAAAIA6Am/v+zX1QH2EnghykdAADuLEecAAc=
   </data>
  </layer>
 </map>

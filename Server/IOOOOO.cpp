@@ -1,6 +1,6 @@
 
+#include"Server.h"
 #include"IOOOOO.h"
-
 IOmode::IOmode(int part,string ipaddr)
 {
 
@@ -32,8 +32,6 @@ void IOmode::blockmode()//阻塞模式,对多个客户端没啥用
 void IOmode::selectmode()//选择模型
 {
 	vector<SOCKET>clientset;//客户端集合
-	SOCKET clientsetA;
-	SOCKET clientsetB;//打砖块是两人对战，偷个懒写两个服务器
 	map<SOCKET, sockaddr_in>s2addr;//地址
 	fd_set readfd;//用于检查可读取数据
 	int ret = 0;
@@ -43,8 +41,9 @@ void IOmode::selectmode()//选择模型
 	ioctlsocket(server, FIONBIO, (unsigned long*)&u1);//设置为非阻塞
 
 	bind(server, (sockaddr*)&serveraddr, sizeof(serveraddr));//绑定
-	listen(server, 5);
-	
+	listen(server, 2);
+	bool Astart = false;
+	bool Bstart = false;
 	while (1)
 	{
 		sockaddr_in addr;
@@ -54,13 +53,20 @@ void IOmode::selectmode()//选择模型
 		{
 			clientset.push_back(client);
 			s2addr[client] = addr;
+			send(clientset.back(), "connected", sizeof("connected"), 0);
 			cout << inet_ntoa(addr.sin_addr) << "已加入连接" << "   当前连接数: " << clientset.size() << endl;
+			if (clientset.size() == 2)
+			{
+				send(clientset[0], "matched", sizeof("matched"), 0);
+				send(clientset[1], "matched", sizeof("matched"), 0);
+			}
 		}
 		FD_ZERO(&readfd);//初始化
 		for (int i = 0; i < clientset.size(); i++)
 		{
 			FD_SET((int)(clientset[i]), &readfd);//检查
 		}
+		
 		//查看是否有数据发送
 		ret = 0;
 		if (!clientset.empty())
@@ -68,59 +74,93 @@ void IOmode::selectmode()//选择模型
 			timeval tv = { 0,0 };
 			ret = select(clientset[clientset.size() - 1] + 1, &readfd, NULL, NULL, &tv);
 		}
-		vector<SOCKET>deleteclient;//要退出的客户端
-		if (clientset.size() == 1)
-		{
-			if (FD_ISSET((int)(clientset[0]), &readfd))
-			{
-				char data[1024] = { 0 };
-				recv(clientset[0], data, 1023, 0);
-				string recvdata = data;
-				if (recvdata == "quit")
-				{
-					cout << "玩家断开连接" << endl;
-					deleteclient.push_back(clientset[0]);
-				}
-			}
-		}
 		//处理数据
-		if (ret > 0&& clientset.size()==2)
+		if (ret > 0)
 		{
-			clientsetA=clientset[0];
-			clientsetB=clientset[1];
+			vector<SOCKET> deleteclient;//要退出的套接字，待删除的套接字vector
 			
-			if (FD_ISSET((int)(clientsetA), &readfd))
+			for (int i = 0; i < clientset.size(); i++)
 			{
-				char dataA[1024] = { 0 };
-				recv(clientsetA, dataA, 1023, 0);
-				string recvdata = dataA;
-				cout << "来自" << "玩家A"<< " : " << dataA << endl;
-				send(clientsetB, dataA, sizeof(recvdata), 0);
-				if (recvdata == "quit")
+				if (FD_ISSET((int)(clientset[i]), &readfd))
 				{
-					deleteclient.push_back(clientset[0]);
-					cout << "玩家A断开连接" << endl;
+					char data[1024] = { 0 };
+				    int ret=recv(clientset[i], data, 1023, 0);
+					string recvdata = data;
+					if (recvdata == "quit" || recvdata == "win" || recvdata == "lose")
+					{
+						if (recvdata == "win" || recvdata == "lose")
+						{
+							if (clientset.size() == 2)
+							{
+								if (FD_ISSET((int)(clientset[0]), &readfd))
+								{
+									int ret1 = send(clientset[1], recvdata.c_str(), recvdata.size(), 0);
+									Sleep(5000);
+								
+								}
+								if (FD_ISSET((int)(clientset[1]), &readfd))
+								{
+
+									int ret2 = send(clientset[0], recvdata.c_str(), recvdata.size(), 0);
+									Sleep(5000);
+									
+								}
+							}
+						}
+						deleteclient.push_back(clientset[i]);
+						
+					}
+					else
+					{
+	
+						std::cout << "来自" << inet_ntoa(s2addr[clientset[i]].sin_addr) << " : " << data << endl;
+					}
+					if (clientset.size() == 2)
+					{
+						if (FD_ISSET((int)(clientset[0]), &readfd))
+						{
+							int ret1 = send(clientset[1], recvdata.c_str(), recvdata.size(), 0);
+							
+							if (recvdata == "ready")
+							{
+								Astart = true;
+							}
+						}
+						if (FD_ISSET((int)(clientset[1]), &readfd))
+						{
+						
+							int ret2=send(clientset[0], recvdata.c_str(), recvdata.size(), 0);
+				
+							if (recvdata == "ready")
+							{
+								Bstart = true;
+							}
+						}
+					}
 				}
 			}
-			if (FD_ISSET((int)(clientsetB), &readfd))
-			{
-				char dataB[1024] = { 0 };
-				recv(clientsetB, dataB, 1023, 0);
-				string recvdata = dataB;
-				cout << "来自" << "玩家B" << " : " << dataB << endl;
-				send(clientsetA, dataB, sizeof(recvdata), 0);
-				if (recvdata == "quit")
-				{
-					deleteclient.push_back(clientset[0]);
-					cout << "玩家B断开连接" << endl;
-				}
+			if (Astart && Bstart)
+			{  
+				send(clientset[0], "start", sizeof("start"), 0);
+				send(clientset[1], "start", sizeof("start"), 0);
+				Sleep(3000);
+				srand((unsigned)time(NULL));
+				char a = char(rand() % 4 + 49);
+				string level = "";
+				level += a;
+				send(clientset[0], level.c_str(),level.size(), 0);
+				send(clientset[1], level.c_str(), level.size(), 0);
+				Astart = false;
+				Bstart = false;//改掉避免持续发送
 			}
-			//关闭要退出的客户
 			if (!deleteclient.empty())
 			{
 				for (int i = 0; i < deleteclient.size(); i++)
 				{
-					shutdown(deleteclient[i],2);
+					if(i==0)
+					    std::cout << "玩家A" << "已退出连接，剩余连接数: " << clientset.size() - 1 << endl;
+					else
+						std::cout << "玩家B" << "已退出连接，剩余连接数: " << clientset.size() - 1 << endl;
 					closesocket(deleteclient[i]);
 					vector<SOCKET>::iterator it = find(clientset.begin(), clientset.end(), deleteclient[i]);
 					clientset.erase(it);

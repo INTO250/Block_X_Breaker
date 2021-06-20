@@ -8,7 +8,7 @@ USING_NS_CC;
 #define BG_HEIGHT 1404
 extern int BGM;
 extern float volumeSound;
-#define WINDOWS
+
 Scene* MenuScene::createScene()
 {
     return MenuScene::create();
@@ -41,7 +41,7 @@ bool MenuScene::init()
     this->addChild(background_2, -5);
 
     auto item_1 = MenuItemImage::create("story_mode.png", "story_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
-    auto item_2 = MenuItemImage::create("arcade_mode.png", "arcade_mode_selected.png", CC_CALLBACK_1(MenuScene::storyModeCallback, this));
+    auto item_2 = MenuItemImage::create("arcade_mode.png", "arcade_mode_selected.png", CC_CALLBACK_1(MenuScene::arcadeModeCallback, this));
     auto item_3 = MenuItemImage::create("multiplayer_mode.png", "multiplayer_mode_selected.png", CC_CALLBACK_1(MenuScene::multiplayerModeCallback, this));
     auto item_4 = MenuItemImage::create("settings.png", "settings_selected.png", CC_CALLBACK_1(MenuScene::settingsCallback, this));
     auto MainMenu = Menu::create(item_1, item_2, item_3, item_4, NULL);
@@ -70,7 +70,7 @@ void MenuScene::menuCloseCallback(cocos2d::Ref* pSender)
 }
 void MenuScene::arcadeModeCallback(cocos2d::Ref* pSender)
 {
-    Director::getInstance()->replaceScene(GameScene::createScene(0));
+    Director::getInstance()->replaceScene(TransitionFade::create(2.0f, GameScene::createScene(0)));
 }
 void MenuScene::storyModeCallback(cocos2d::Ref* pSender)
 {
@@ -84,12 +84,13 @@ void MenuScene::storyModeCallback(cocos2d::Ref* pSender)
 void MenuScene::multiplayerModeCallback(cocos2d:: Ref* pSender)
 {
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
-#ifdef WINDOWS
+    
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
-    BGM = AudioEngine::play2d("matching_BGM.mp3", true, volumeBGM);
+    BGM = AudioEngine::play2d("Matching_BGM.mp3", true, volumeBGM);
     Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MatchingScene::createScene()));
-#endif
+    
+    
 }
 void MenuScene::settingsCallback(cocos2d::Ref* pSender)
 {

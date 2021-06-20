@@ -10,12 +10,12 @@
  </layer>
  <layer id="2" name="bonusBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFo4A8wERHfeTaNQqGPyA2bRBSh0+eXLlRMApGwSgYBaNgFGACAJOAABE=
+   eJxjYBgFo4A8wERHfeTaNRIBExomVm6oAnx+xKeOkDnUkCNGHaX5CN2/pLiHlHQw3NLNKBgFo2AUjIKBAwD3LwBB
   </data>
  </layer>
  <layer id="3" name="toughBlock" width="20" height="40">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFgx0wU1kduh50PAqGHxgp8TqankfBKBgFo2AUjILBDwB25wAo
+   eJztwwEJAAAMA6DB+3d+gRUYKJiw5EoAAFjxrjgAEA==
   </data>
  </layer>
 </map>

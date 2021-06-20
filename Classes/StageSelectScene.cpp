@@ -4,6 +4,7 @@
 USING_NS_CC;
 extern int BGM;
 extern float volumeSound;
+
 Scene* StageSelect::createScene()
 {
 	return StageSelect::create();
@@ -60,17 +61,13 @@ bool StageSelect::init()
 void StageSelect::stage_1_select(cocos2d::Ref* pSender)
 {
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
-    float volumeBGM = AudioEngine::getVolume(BGM);
-    AudioEngine::stop(BGM);
-    BGM = AudioEngine::play2d("stage_1_BGM.mp3", true, volumeBGM);
+  
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(1)));
 }
 void StageSelect::stage_2_select(cocos2d::Ref* pSender)
 {
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
-    float volumeBGM = AudioEngine::getVolume(BGM);
-    AudioEngine::stop(BGM);
-    BGM = AudioEngine::play2d("stage_2_BGM.mp3", true, volumeBGM);
+    
     Director::getInstance()->pushScene(TransitionFade::create(2.0f, GameScene::createScene(2)));
 }
 void StageSelect::stage_3_select(cocos2d::Ref* pSender)

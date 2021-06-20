@@ -72,5 +72,7 @@ public:
     int rank(int score);
     bool isHaveSaveFile();
     int getHighestHistorySorce();
+
+
 };
 #endif

@@ -10,8 +10,22 @@
 #include "Arrow.h"
 #include "Block.h"
 #include "ui/CocosGUI.h"
+#ifdef WIN32
 #include <WINSOCK2.H>
 #pragma comment(lib,"ws2_32.lib")
+typedef int				socklen_t;
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+typedef int				SOCKET;
+#endif
+
 class OnlineScene : public cocos2d::Scene
 {
 public:
@@ -87,6 +101,7 @@ public:
     void winSend(float dt);
     void loseSend(float dt);
 
+
     int oppoSmall = 0;
     int oppoRotating = 0;
     int oppoBoost = 0;
@@ -94,5 +109,7 @@ public:
     float speed = 1.0f;
     
     void dataRS(float dt);
+
+
 };
 #endif

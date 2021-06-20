@@ -6,6 +6,7 @@
 #include <iostream>
 #include<vector>
 #include<map>
+#include <time.h>
 #pragma comment(lib,"ws2_32.lib")
 #include <string>
 using namespace std;

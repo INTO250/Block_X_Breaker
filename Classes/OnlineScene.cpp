@@ -145,17 +145,17 @@ bool OnlineScene::initWithPhysics()
     opponentHeart->setPosition(Vec2(608, 733));
     this->addChild(opponentHeart);
 
-    skillsBar = ui::LoadingBar::create("skillsBar.png");
+    skillsBar = ui::LoadingBar::create("skillsbar.png");
     skillsBar->setPosition(Vec2(384, 671));
     skillsBar->setPercent(0);
     this->addChild(skillsBar);
 
-    opponentBar = ui::LoadingBar::create("skillsBar.png");
+    opponentBar = ui::LoadingBar::create("skillsbar.png");
     opponentBar->setPosition(Vec2(264, 733));
     opponentBar->setPercent(0);
     this->addChild(opponentBar);
 
-    
+
 
 
     char stageBackgroundString[30];
@@ -164,7 +164,7 @@ bool OnlineScene::initWithPhysics()
     background->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(background, -10);
     this->scheduleUpdate();
-    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::dataRS, this), 0.0333f);
+    this->schedule((CC_SCHEDULE_SELECTOR(OnlineScene::dataRS)), 0.0333f);
     return true;
 }
 
@@ -270,6 +270,7 @@ bool OnlineScene::onContactBegin(const PhysicsContact& contact)
             this->addChild(effect);
             map->getLayer("normalBlock")->removeTileAt(Blocks[bodyB->getTag() - 1].position);
             score++;
+
             check_win();
         }
     }
@@ -289,11 +290,12 @@ bool OnlineScene::onContactBegin(const PhysicsContact& contact)
             blockInfo[Blocks[bodyA->getTag() - 1].position.y * 20 + Blocks[bodyA->getTag() - 1].position.x] = '!';
             
             score++;
-            
+
             check_win();
         }
     }
     skillsBar->setPercent((score % 10) * 10);
+
     if (score && score % 10 == 0)
     {
         switch (1 + rand() % 3)
@@ -308,6 +310,7 @@ bool OnlineScene::onContactBegin(const PhysicsContact& contact)
                 oppoSpeedUp();
                 break;   
         }
+
     }
     return true;
 }
@@ -364,6 +367,7 @@ void OnlineScene::dataRS(float dt)
             opponentLife->setString(trans(atoi(oppoLife)));
 
             opponentBar->setPercent(oppoBar);
+
 
             if (smal)
             {
@@ -562,7 +566,7 @@ void OnlineScene::gameLose()
     Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
     
     this->unscheduleAllCallbacks();
-    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::loseSend, this), 0.1f);
+    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::loseSend), 0.1f);
     auto label_false = Label::createWithTTF("You Lose!", "fonts/Marker Felt.ttf", 148);
     label_false->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(label_false);
@@ -580,7 +584,7 @@ void OnlineScene::gameWin()
     Director::getInstance()->getEventDispatcher()->removeAllEventListeners();
 
     this->unscheduleAllCallbacks();
-    this->schedule(CC_SCHEDULE_SELECTOR(OnlineScene::winSend, this), 0.1f);
+    this->schedule((CC_SCHEDULE_SELECTOR(OnlineScene::winSend)), 0.1f);
     auto label_success = Label::createWithTTF("Congratulations!", "fonts/Marker Felt.ttf", 48);
     label_success->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
     this->addChild(label_success);
@@ -810,7 +814,9 @@ void OnlineScene::onButtonPressed(Ref* pSender)
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
     BGM = AudioEngine::play2d("MainMenu.mp3", true, volumeBGM);
+#ifdef WIN32
     WSACleanup();
+#endif
     Director::getInstance()->replaceScene(TransitionFade::create(2.0f, MenuScene::createScene()));
 }
 bool OnlineScene::onTouchBegan(Touch* touch, Event* event)

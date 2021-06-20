@@ -37,17 +37,23 @@ bool MatchingScene::init()
     closeButtonMenu->setAnchorPoint(Vec2(0, 1));
     closeButtonMenu->setPosition(Vec2(50, visibleSize.height - 50));
     this->addChild(closeButtonMenu);
-
+#ifdef WIN32
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
     sockaddr_in serveraddr;
     serveraddr.sin_family = AF_INET;//对这个类进行初始化
     serveraddr.sin_port = htons(12345);
     
     serveraddr.sin_addr.s_addr = inet_addr(IPAddr.c_str());
     client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+#ifdef WIN32
     unsigned long u1;
     ioctlsocket(client, FIONBIO, (unsigned long*)&u1);
+#else
+    int flags = fcntl(client, F_GETFL, 0);
+    fcntl(client, F_SETFL, flags | O_NONBLOCK);
+#endif
     matchLabel = Label::createWithTTF("Connecting", "fonts/Marker Felt.ttf", 48);
     matchLabel->setPosition(Vec2(324, 702));
     this->addChild(matchLabel);
@@ -73,7 +79,9 @@ void MatchingScene::backToMenu(cocos2d::Ref* pSender)
 
     auto sound = AudioEngine::play2d("sound_click.mp3", false, volumeSound);
     send(client, "quit", sizeof("quit"), 0);
+#ifdef WIN32
     WSACleanup();
+#endif
     float volumeBGM = AudioEngine::getVolume(BGM);
     AudioEngine::stop(BGM);
     BGM = AudioEngine::play2d("MainMenu.mp3", true, volumeBGM);
